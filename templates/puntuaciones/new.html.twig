@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Puntuaciones{% endblock %}
+
+{% block body %}
+    <h1>Create new Puntuaciones</h1>
+
+    {{ include('puntuaciones/_form.html.twig') }}
+
+    <a href="{{ path('app_puntuaciones_index') }}">back to list</a>
+{% endblock %}
