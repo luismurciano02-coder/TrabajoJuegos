@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Aplicaciones;
+use App\Repository\AplicacionesRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,8 +13,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ApiController extends AbstractController
 {
-    private const VALID_API_KEY = 'tu_api_key_secreta_aqui';
-
     #[Route('/api', name: 'app_api')]
     public function index(): Response
     {
@@ -21,7 +22,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/conexion', name: 'app_api_conexion', methods: ['GET', 'POST'])]
-    public function conexion(Request $request): JsonResponse
+    public function conexion(Request $request, AplicacionesRepository $aplicacionesRepository): JsonResponse
     {
         try {
             // Obtener datos del request
@@ -37,8 +38,10 @@ final class ApiController extends AbstractController
 
             $apiKey = $data['api_key'];
 
-            // Validar API-KEY
-            if ($apiKey !== self::VALID_API_KEY) {
+            // Validar API-KEY contra la base de datos
+            $aplicacion = $aplicacionesRepository->findOneBy(['apikey' => $apiKey, 'activo' => true]);
+            
+            if (!$aplicacion) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Conexión no permitida, API-KEY inválida',
@@ -48,7 +51,12 @@ final class ApiController extends AbstractController
 
             // Generar token JWT simple
             $header = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
-            $payload = base64_encode(json_encode(['iat' => time(), 'exp' => time() + 3600]));
+            $payload = base64_encode(json_encode([
+                'iat' => time(), 
+                'exp' => time() + 3600,
+                'app_id' => $aplicacion->getId(),
+                'app_name' => $aplicacion->getNombre()
+            ]));
             $signature = hash_hmac('sha256', $header . '.' . $payload, 'tu-clave-secreta', true);
             $signature = base64_encode($signature);
             $token = $header . '.' . $payload . '.' . $signature;
@@ -57,15 +65,16 @@ final class ApiController extends AbstractController
                 'success' => true,
                 'message' => 'Conexión exitosa',
                 'data' => [
-                    'api_key' => self::VALID_API_KEY,
-                    'access_token' => $token
+                    'api_key' => $apiKey,
+                    'access_token' => $token,
+                    'aplicacion' => $aplicacion->getNombre()
                 ]
             ]);
 
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
-                'message' => 'Error en la conexión',
+                'message' => 'Error en la conexión: ' . $e->getMessage(),
                 'data' => ''
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
