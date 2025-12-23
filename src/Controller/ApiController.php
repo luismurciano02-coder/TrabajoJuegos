@@ -433,6 +433,8 @@ final class ApiController extends AbstractController
         }
     }
 
+    /*Endpoint para guardar la puntuacion de una partida en la aplicacion*/
+
     #[Route('/api/juego/guardar', name: 'app_api_juego_guardar', methods: ['POST'])]
     public function guardarJuego(
         Request $request,
