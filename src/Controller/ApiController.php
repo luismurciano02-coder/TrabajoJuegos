@@ -112,7 +112,7 @@ final class ApiController extends AbstractController
             $password = $data['password'];
 
             // Validar API-KEY contra la base de datos
-            $aplicacion = $aplicacionesRepository->findOneBy(['apikey' => $apiKey, 'activo' => true]);
+            $aplicacion = $aplicacionesRepository->findOneBy(['apikey' => $apiKey]);
             
             if (!$aplicacion) {
                 return $this->json([
@@ -122,13 +122,13 @@ final class ApiController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Buscar el usuario por email y que esté activo
-            $user = $userRepository->findOneBy(['email' => $email, 'activo' => true]);
+            // Buscar el usuario por email (sin validar activo primero)
+            $user = $userRepository->findOneBy(['email' => $email]);
 
             if (!$user) {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Usuario o contraseña incorrectos',
+                    'message' => 'Usuario no encontrado',
                     'data' => ''
                 ], Response::HTTP_UNAUTHORIZED);
             }
@@ -137,24 +137,32 @@ final class ApiController extends AbstractController
             $passwordValida = false;
             
             // Primero intentar con password hasheada
-            if ($passwordHasher->isPasswordValid($user, $password)) {
-                $passwordValida = true;
-            } 
+            try {
+                if ($passwordHasher->isPasswordValid($user, $password)) {
+                    $passwordValida = true;
+                }
+            } catch (\Exception $e) {
+                // Si falla el hash, ignorar y probar texto plano
+            }
+            
             // Si no funciona, comparar directamente (para contraseñas en texto plano)
-            else if ($user->getPassword() === $password) {
+            if (!$passwordValida && $user->getPassword() === $password) {
                 $passwordValida = true;
             }
 
             if (!$passwordValida) {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Usuario o contraseña incorrectos',
-                    'data' => ''
+                    'message' => 'Contraseña incorrecta',
+                    'data' => [
+                        'debug' => 'Password en BD: ' . substr($user->getPassword(), 0, 20) . '...',
+                        'debug2' => 'Password enviada: ' . $password
+                    ]
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
             // Obtener juegos de la aplicación
-            $juegos = $juegosRepository->findBy(['aplicacion' => $aplicacion, 'activo' => true]);
+            $juegos = $juegosRepository->findBy(['aplicacion' => $aplicacion]);
 
             $listadoJuegos = [];
             foreach ($juegos as $juego) {
