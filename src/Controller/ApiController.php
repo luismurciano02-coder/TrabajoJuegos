@@ -133,8 +133,19 @@ final class ApiController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Verificar la contraseña
-            if (!$passwordHasher->isPasswordValid($user, $password)) {
+            // Verificar la contraseña (soporta hash y texto plano)
+            $passwordValida = false;
+            
+            // Primero intentar con password hasheada
+            if ($passwordHasher->isPasswordValid($user, $password)) {
+                $passwordValida = true;
+            } 
+            // Si no funciona, comparar directamente (para contraseñas en texto plano)
+            else if ($user->getPassword() === $password) {
+                $passwordValida = true;
+            }
+
+            if (!$passwordValida) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Usuario o contraseña incorrectos',
