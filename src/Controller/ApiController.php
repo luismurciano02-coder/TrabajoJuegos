@@ -206,14 +206,30 @@ final class ApiController extends AbstractController
     {
         try {
             // Obtener datos del request
-            $data = json_decode($request->getContent(), true);
+            $content = $request->getContent();
+            $data = json_decode($content, true);
 
-            // Validar que se envíen todos los campos requeridos
-            if (!isset($data['api_key']) || !isset($data['nombre']) || !isset($data['email']) || !isset($data['password'])) {
+            // Debug: verificar si el JSON se parseó correctamente
+            if ($data === null) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Error en el registro del nuevo usuario',
-                    'data' => 'Faltan datos requeridos (api_key, nombre, email, password)'
+                    'data' => 'JSON inválido. Verifica el formato del Body.'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validar que se envíen todos los campos requeridos
+            $camposFaltantes = [];
+            if (!isset($data['api_key'])) $camposFaltantes[] = 'api_key';
+            if (!isset($data['nombre'])) $camposFaltantes[] = 'nombre';
+            if (!isset($data['email'])) $camposFaltantes[] = 'email';
+            if (!isset($data['password'])) $camposFaltantes[] = 'password';
+
+            if (count($camposFaltantes) > 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error en el registro del nuevo usuario',
+                    'data' => 'Faltan campos: ' . implode(', ', $camposFaltantes) . '. Datos recibidos: ' . json_encode(array_keys($data))
                 ], Response::HTTP_BAD_REQUEST);
             }
 
