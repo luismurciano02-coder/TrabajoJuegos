@@ -10,6 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ApiController extends AbstractController
 {
+    private const VALID_API_KEY = 'tu_api_key_secreta_aqui';
 
     #[Route('/api', name: 'app_api')]
     public function index(): Response
