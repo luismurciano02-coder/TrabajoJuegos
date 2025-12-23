@@ -193,4 +193,102 @@ final class ApiController extends AbstractController
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    #[Route('/api/registro', name: 'app_api_registro', methods: ['POST'])]
+    public function registro(
+        Request $request,
+        AplicacionesRepository $aplicacionesRepository,
+        UserRepository $userRepository,
+        JuegosRepository $juegosRepository,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher
+    ): JsonResponse
+    {
+        try {
+            // Obtener datos del request
+            $data = json_decode($request->getContent(), true);
+
+            // Validar que se envíen todos los campos requeridos
+            if (!isset($data['api_key']) || !isset($data['nombre']) || !isset($data['email']) || !isset($data['password'])) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error en el registro del nuevo usuario',
+                    'data' => 'Faltan datos requeridos (api_key, nombre, email, password)'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $apiKey = $data['api_key'];
+            $nombre = $data['nombre'];
+            $email = $data['email'];
+            $password = $data['password'];
+
+            // Validar API-KEY contra la base de datos
+            $aplicacion = $aplicacionesRepository->findOneBy(['apikey' => $apiKey]);
+            
+            if (!$aplicacion) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error en el registro del nuevo usuario',
+                    'data' => 'API-KEY inválida'
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            // Verificar si el email ya existe
+            $usuarioExistente = $userRepository->findOneBy(['email' => $email]);
+            
+            if ($usuarioExistente) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error en el registro del nuevo usuario',
+                    'data' => 'La cuenta ya está dada de alta'
+                ], Response::HTTP_CONFLICT);
+            }
+
+            // Crear el nuevo usuario
+            $user = new \App\Entity\User();
+            $user->setEmail($email);
+            $user->setNombre($nombre);
+            $user->setActivo(true);
+            
+            // Hashear la contraseña
+            $hashedPassword = $passwordHasher->hashPassword($user, $password);
+            $user->setPassword($hashedPassword);
+            
+            // Generar token único para el usuario
+            $userToken = bin2hex(random_bytes(20));
+            $user->setToken($userToken);
+            
+            // Guardar el usuario en la base de datos
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // Obtener juegos de la aplicación
+            $juegos = $juegosRepository->findBy(['aplicacion' => $aplicacion]);
+
+            $listadoJuegos = [];
+            foreach ($juegos as $juego) {
+                $listadoJuegos[] = [
+                    'juego' => $juego->getNombre(),
+                    'Partidas' => '0',
+                    'token' => $juego->getToken()
+                ];
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Usuario registrado',
+                'data' => [
+                    'usuario_token' => $user->getToken(),
+                    'Listado juegos' => $listadoJuegos
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error en el registro del nuevo usuario',
+                'data' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
