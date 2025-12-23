@@ -432,4 +432,129 @@ final class ApiController extends AbstractController
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    #[Route('/api/juego/guardar', name: 'app_api_juego_guardar', methods: ['POST'])]
+    public function guardarJuego(
+        Request $request,
+        AplicacionesRepository $aplicacionesRepository,
+        UserRepository $userRepository,
+        JuegosRepository $juegosRepository,
+        PuntuacionesRepository $puntuacionesRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse
+    {
+        try {
+            // Obtener datos del request
+            $content = $request->getContent();
+            $data = json_decode($content, true);
+
+            // Validar JSON
+            if ($data === null) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error, no hay registro de ese juego',
+                    'data' => 'JSON inválido'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Validar campos requeridos
+            $camposFaltantes = [];
+            if (!isset($data['api_key'])) $camposFaltantes[] = 'api_key';
+            if (!isset($data['token_usuario'])) $camposFaltantes[] = 'token_usuario';
+            if (!isset($data['token_juego'])) $camposFaltantes[] = 'token_juego';
+            if (!isset($data['puntos'])) $camposFaltantes[] = 'puntos';
+
+            if (count($camposFaltantes) > 0) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error, no hay registro de ese juego',
+                    'data' => 'Faltan campos: ' . implode(', ', $camposFaltantes) . '. Campos recibidos: ' . json_encode(array_keys($data))
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $apiKey = $data['api_key'];
+            $tokenUsuario = $data['token_usuario'];
+            $tokenJuego = $data['token_juego'];
+            $puntos = (int)$data['puntos'];
+
+            // Validar API-KEY
+            $aplicacion = $aplicacionesRepository->findOneBy(['apikey' => $apiKey]);
+            
+            if (!$aplicacion) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error, no hay registro de ese juego',
+                    'data' => 'API-KEY inválida'
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            // Buscar usuario por token
+            $user = $userRepository->findOneBy(['token' => $tokenUsuario]);
+            
+            if (!$user) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error, no hay registro de ese juego',
+                    'data' => 'Token de usuario inválido'
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            // Buscar juego por token
+            $juego = $juegosRepository->findOneBy(['token' => $tokenJuego, 'aplicacion' => $aplicacion]);
+            
+            if (!$juego) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Error, no hay registro de ese juego',
+                    'data' => 'Token de juego inválido o no pertenece a la aplicación'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Crear y guardar la nueva puntuación
+            $puntuacion = new \App\Entity\Puntuaciones();
+            $puntuacion->setPuntuacion($puntos);
+            $puntuacion->setUser($user);
+            $puntuacion->setJuego($juego);
+            $puntuacion->setFecha(new \DateTime());
+
+            $entityManager->persist($puntuacion);
+            $entityManager->flush();
+
+            // Obtener top 10 de jugadores actualizado (mejores puntuaciones únicas por usuario)
+            $topJugadores = $puntuacionesRepository->createQueryBuilder('p')
+                ->select('u.nombre as jugador, MAX(p.puntuacion) as puntos')
+                ->join('p.user', 'u')
+                ->where('p.juego = :juego')
+                ->setParameter('juego', $juego)
+                ->groupBy('u.id')
+                ->orderBy('puntos', 'DESC')
+                ->setMaxResults(10)
+                ->getQuery()
+                ->getResult();
+
+            $listadoJugadores = [];
+            foreach ($topJugadores as $jugador) {
+                $listadoJugadores[] = [
+                    'jugador' => $jugador['jugador'],
+                    'Puntos' => (string)$jugador['puntos']
+                ];
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Listado de resultados del juego',
+                'data' => [
+                    'usuario_token' => $user->getToken(),
+                    'Listado jugadores' => $listadoJugadores
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error, no hay registro de ese juego',
+                'data' => 'Error en el registro del juego: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
