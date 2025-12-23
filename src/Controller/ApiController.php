@@ -341,7 +341,7 @@ final class ApiController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'message' => 'Error, no hay registro de ese juego',
-                    'data' => 'Faltan campos: ' . implode(', ', $camposFaltantes)
+                    'data' => 'Faltan campos: ' . implode(', ', $camposFaltantes) . '. Campos recibidos: ' . json_encode(array_keys($data))
                 ], Response::HTTP_BAD_REQUEST);
             }
 
