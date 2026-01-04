@@ -1,58 +1,45 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}Inicio - Trabajo Juegos{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    <p>This friendly message is coming from:</p>
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/TrabajoJuegos/src/Controller/HomeController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/TrabajoJuegos/templates/home/index.html.twig</code></li>
-    </ul>
-
-    <hr>
-    <h2>Probar API</h2>
-    <div>
-        <label for="api_key">API Key:</label>
-        <input id="api_key" type="text" placeholder="sk_live_..." style="width:60%" />
-        <button id="send_api" type="button">Conectar</button>
+<section class="hero-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 text-center">
+                <h1 class="display-4 mb-4">🎮 Bienvenido a Trabajo Juegos 🎮</h1>
+                <p class="lead mb-5">Tu plataforma definitiva para gestionar juegos y aplicaciones en un mundo de aventuras infinitas. Explora, juega y administra con facilidad.</p>
+                <div class="row justify-content-center">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">🔑 Acceso Seguro</h5>
+                                <p class="card-text">Inicia sesión o regístrate para acceder a todas las funciones.</p>
+                                <a href="{{ path('app_login') }}" class="btn btn-primary">🚀 Iniciar Sesión</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">🎯 Explora Juegos</h5>
+                                <p class="card-text">Descubre y gestiona juegos filtrados por tu token.</p>
+                                <a href="{{ path('app_juegos_index') }}" class="btn btn-success">Ver Juegos</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">✨ Únete Ahora</h5>
+                                <p class="card-text">Crea tu cuenta y comienza tu aventura gaming.</p>
+                                <a href="{{ path('app_user_new') }}" class="btn btn-secondary">Registrarse</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <pre id="api_result" style="background:#f6f8fa;border:1px solid #ddd;padding:10px;margin-top:1em;white-space:pre-wrap;"></pre>
-
-    <script>
-        document.getElementById('send_api').addEventListener('click', async function(){
-            const btn = this;
-            const apiKey = document.getElementById('api_key').value.trim();
-            const resultEl = document.getElementById('api_result');
-            if(!apiKey){ resultEl.textContent = 'Introduce una API key.'; return; }
-            btn.disabled = true;
-            resultEl.textContent = 'Enviando...';
-            try{
-                const res = await fetch('/api/conexion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ api_key: apiKey })
-                });
-                const text = await res.text();
-                try{ // intentar parsear JSON
-                    const json = JSON.parse(text);
-                    resultEl.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
-                } catch(e){
-                    resultEl.textContent = 'Status: ' + res.status + '\n' + text;
-                }
-            } catch(err){
-                resultEl.textContent = 'Error: ' + err.message;
-            } finally{
-                btn.disabled = false;
-            }
-        });
-    </script>
-</div>
+</section>
 {% endblock %}
