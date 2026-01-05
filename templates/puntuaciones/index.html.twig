@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Puntuaciones index{% endblock %}
+
+{% block body %}
+    <h1>Puntuaciones index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Puntuacion</th>
+                <th>Fecha</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for puntuacione in puntuaciones %}
+            <tr>
+                <td>{{ puntuacione.id }}</td>
+                <td>{{ puntuacione.puntuacion }}</td>
+                <td>{{ puntuacione.fecha ? puntuacione.fecha|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_puntuaciones_show', {'id': puntuacione.id}) }}">show</a>
+                    <a href="{{ path('app_puntuaciones_edit', {'id': puntuacione.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_puntuaciones_new') }}">Create new</a>
+{% endblock %}

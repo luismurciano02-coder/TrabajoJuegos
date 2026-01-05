@@ -1,23 +1,9 @@
 {{ form_start(form) }}
-    <div class="mb-3">
-        {{ form_label(form.email, '📧 Correo Electrónico', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-        {{ form_errors(form.email) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.nombre, '👤 Nombre', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.nombre, {'attr': {'class': 'form-control'}}) }}
-        {{ form_errors(form.nombre) }}
-    </div>
-    <div class="mb-3">
-        {{ form_label(form.password, '🔒 Contraseña', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
-        {{ form_errors(form.password) }}
-    </div>
-    {{ form_widget(form.roles, {'attr': {'style': 'display:none'}}) }}
-    {{ form_widget(form.token, {'attr': {'style': 'display:none'}}) }}
-    {{ form_widget(form.activo, {'attr': {'style': 'display:none'}}) }}
-    <div class="d-grid">
-        <button class="btn btn-primary">{{ button_label|default('🎮 Crear Cuenta') }}</button>
-    </div>
+    {{ form_widget(form) }}
+    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}
+
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button class="btn">{{ button_label|default('Save') }}</button>
 {{ form_end(form) }}
