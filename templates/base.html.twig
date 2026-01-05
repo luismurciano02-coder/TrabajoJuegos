@@ -87,6 +87,12 @@
                     box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
                     color: #000000;
                 }
+                .form-label {
+                    color: #00d4ff; /* Un azul cian que combina con el tema */
+                    font-weight: bold;
+                    margin-bottom: 0.5rem;
+                    font-size: 0.9rem; /* Un poco más pequeño para que no sea tan grande con la fuente Press Start 2P */
+                }
                 .card .card-text, .card p, .card li {
                     color: #ffffff;
                 }
@@ -150,7 +156,6 @@
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{{ path('app_aplicaciones_index') }}">📱 Aplicaciones</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ path('app_puntuaciones_index') }}">⭐ Puntuaciones</a></li>
                                 </ul>
                             </li>
                         {% endif %}
