@@ -1,0 +1,48 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Panel de Control - Eugenio{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Panel de Administración </h1>
+    <hr>
+
+    <div class="row text-center mb-4">
+        <div class="col-md-6">
+            <div class="card bg-primary text-white p-3">
+                <h3>Total Partidas: {{ total_jugadas }}</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-success text-white p-3">
+                <h3>Juegos Registrados: {{ juegos_activos|length }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <h3>Histórico Total de Puntuaciones [cite: 30, 39]</h3>
+    <table class="table table-striped table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>Usuario</th>
+                <th>Juego</th>
+                <th>Puntuación</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for jugada in historico_completo %}
+                <tr>
+                    <td>{{ jugada.user.username }}</td>
+                    <td>{{ jugada.juegoNombre }}</td>
+                    <td><strong>{{ jugada.puntos }}</strong></td>
+                    <td>{{ jugada.fecha|date('d/m/Y H:i') }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No hay jugadas registradas aún.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

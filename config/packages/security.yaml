@@ -40,8 +40,8 @@ security:
         # - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/api, roles: PUBLIC_ACCESS }
         - { path: ^/login$, roles: PUBLIC_ACCESS }
-        
-        - { path: ^/, roles: IS_AUTHENTICATED_FULLY } 
+        # Allow everything without requiring login
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

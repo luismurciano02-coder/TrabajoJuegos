@@ -1,58 +1,43 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}Inicio - Juegos{% endblock %}
 
 {% block body %}
 <style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    .hero { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 80px 40px; border-radius: 12px; text-align: center; margin-bottom: 60px; box-shadow: 0 12px 32px rgba(228, 48, 39, 0.3); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -50%; right: -50%; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+    .hero h1 { font-size: 54px; margin-bottom: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); position: relative; z-index: 1; }
+    .hero p { font-size: 18px; opacity: 0.95; margin-bottom: 32px; text-transform: uppercase; letter-spacing: 0.5px; position: relative; z-index: 1; }
+    .btn-hero { background: white; color: #E43027; padding: 16px 36px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 16px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+    .btn-hero:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+    .btn-hero:active { transform: translateY(-1px); }
+    
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 60px; }
+    .card { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 12px; padding: 32px 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid #444444; transition: all 0.3s; }
+    .card:hover { transform: translateY(-8px); border-color: #E43027; box-shadow: 0 12px 32px rgba(228, 48, 39, 0.2); }
+    .card h2 { font-size: 24px; margin-bottom: 12px; color: #FFFFFF; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card p { color: #AAAAAA; line-height: 1.6; }
 </style>
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
 
-    <p>This friendly message is coming from:</p>
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/TrabajoJuegos/src/Controller/HomeController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/TrabajoJuegos/templates/home/index.html.twig</code></li>
-    </ul>
+<div class="hero">
+    <h1>🎮 BIENVENIDO A JUEGOS</h1>
+    <p>Descubre y juega a nuestro catálogo de juegos interactivos</p>
+    <a href="{{ path('app_juegos_index') }}"><button class="btn-hero">IR AL CATÁLOGO →</button></a>
+</div>
 
-    <hr>
-    <h2>Probar API</h2>
-    <div>
-        <label for="api_key">API Key:</label>
-        <input id="api_key" type="text" placeholder="sk_live_..." style="width:60%" />
-        <button id="send_api" type="button">Conectar</button>
+<h2 class="page-title">¿QUÉ PUEDO HACER?</h2>
+<div class="cards">
+    <div class="card">
+        <h2>📚 CATÁLOGO</h2>
+        <p>Explora nuestro catálogo completo de juegos y descubre nuevas experiencias de entretenimiento.</p>
     </div>
-
-    <pre id="api_result" style="background:#f6f8fa;border:1px solid #ddd;padding:10px;margin-top:1em;white-space:pre-wrap;"></pre>
-
-    <script>
-        document.getElementById('send_api').addEventListener('click', async function(){
-            const btn = this;
-            const apiKey = document.getElementById('api_key').value.trim();
-            const resultEl = document.getElementById('api_result');
-            if(!apiKey){ resultEl.textContent = 'Introduce una API key.'; return; }
-            btn.disabled = true;
-            resultEl.textContent = 'Enviando...';
-            try{
-                const res = await fetch('/api/conexion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ api_key: apiKey })
-                });
-                const text = await res.text();
-                try{ // intentar parsear JSON
-                    const json = JSON.parse(text);
-                    resultEl.textContent = JSON.stringify({ status: res.status, body: json }, null, 2);
-                } catch(e){
-                    resultEl.textContent = 'Status: ' + res.status + '\n' + text;
-                }
-            } catch(err){
-                resultEl.textContent = 'Error: ' + err.message;
-            } finally{
-                btn.disabled = false;
-            }
-        });
-    </script>
+    <div class="card">
+        <h2>🎮 JUEGA</h2>
+        <p>Accede a cada juego con un solo clic y comienza a jugar. Tus puntuaciones se guardan automáticamente.</p>
+    </div>
+    <div class="card">
+        <h2>📊 API</h2>
+        <p>Integra nuestros juegos en tu aplicación. Consulta nuestra documentación de API.</p>
+    </div>
 </div>
 {% endblock %}

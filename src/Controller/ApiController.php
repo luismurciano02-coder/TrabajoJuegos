@@ -32,6 +32,14 @@ final class ApiController extends AbstractController
             // Obtener datos del request
             $data = json_decode($request->getContent(), true);
 
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Conexión no permitida, JSON inválido',
+                    'data' => ''
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
             if (!isset($data['api_key'])) {
                 return $this->json([
                     'success' => false,
@@ -53,16 +61,26 @@ final class ApiController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
+            $secret = (string) $this->getParameter('kernel.secret');
+
+            if ($secret === '') {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Conexión no permitida, falta la clave de la aplicación',
+                    'data' => ''
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
             // Generar token JWT simple
-            $header = base64_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
-            $payload = base64_encode(json_encode([
+            $header = $this->base64UrlEncode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
+            $payload = $this->base64UrlEncode(json_encode([
                 'iat' => time(), 
                 'exp' => time() + 3600,
                 'app_id' => $aplicacion->getId(),
                 'app_name' => $aplicacion->getNombre()
             ]));
-            $signature = hash_hmac('sha256', $header . '.' . $payload, 'tu-clave-secreta', true);
-            $signature = base64_encode($signature);
+            $signature = hash_hmac('sha256', $header . '.' . $payload, $secret, true);
+            $signature = $this->base64UrlEncode($signature);
             $token = $header . '.' . $payload . '.' . $signature;
 
             return $this->json([
@@ -133,31 +151,27 @@ final class ApiController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Verificar la contraseña (soporta hash y texto plano)
-            $passwordValida = false;
-            
-            // Primero intentar con password hasheada
-            try {
-                if ($passwordHasher->isPasswordValid($user, $password)) {
-                    $passwordValida = true;
-                }
-            } catch (\Exception $e) {
-                // Si falla el hash, ignorar y probar texto plano
-            }
-            
-            // Si no funciona, comparar directamente (para contraseñas en texto plano)
-            if (!$passwordValida && $user->getPassword() === $password) {
-                $passwordValida = true;
+            if (!$aplicacion->isActivo()) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Aplicación deshabilitada',
+                    'data' => ''
+                ], Response::HTTP_UNAUTHORIZED);
             }
 
-            if (!$passwordValida) {
+            if ($user->isActivo() === false) {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Usuario inactivo',
+                    'data' => ''
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            if (!$passwordHasher->isPasswordValid($user, $password)) {
                 return $this->json([
                     'success' => false,
                     'message' => 'Contraseña incorrecta',
-                    'data' => [
-                        'debug' => 'Password en BD: ' . substr($user->getPassword(), 0, 20) . '...',
-                        'debug2' => 'Password enviada: ' . $password
-                    ]
+                    'data' => ''
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
@@ -558,5 +572,10 @@ final class ApiController extends AbstractController
                 'data' => 'Error en el registro del juego: ' . $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }

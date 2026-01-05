@@ -1,39 +1,54 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Juegos index{% endblock %}
+{% block title %}Catálogo de Juegos{% endblock %}
 
 {% block body %}
-    <h1>Juegos index</h1>
+<style>
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-group a { text-decoration: none; }
+    .btn-jugar { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 15px; display: inline-block; transition: all 0.3s; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(228, 48, 39, 0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-jugar:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(228, 48, 39, 0.5); }
+    .btn-small { background: #444444; color: #FFFFFF; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; display: inline-block; border: none; cursor: pointer; transition: all 0.3s; }
+    .btn-small:hover { background: #555555; transform: translateY(-1px); }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-top: 28px; }
+    .game-card { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); transition: all 0.3s; border: 2px solid #444444; }
+    .game-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(228, 48, 39, 0.2); border-color: #E43027; }
+    .game-card-header { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); padding: 20px; color: white; }
+    .game-card-header h2 { margin: 0; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge { display: inline-block; font-size: 11px; padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.2); margin-top: 8px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    .game-card-footer { padding: 20px; border-top: 2px solid #444444; }
+    .btn-new { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; margin-bottom: 20px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(228, 48, 39, 0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-new:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(228, 48, 39, 0.5); }
+</style>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Nombre</th>
-                <th>Activo</th>
-                <th>Token</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for juego in juegos %}
-            <tr>
-                <td>{{ juego.id }}</td>
-                <td>{{ juego.nombre }}</td>
-                <td>{{ juego.activo ? 'Yes' : 'No' }}</td>
-                <td>{{ juego.token }}</td>
-                <td>
-                    <a href="{{ path('app_juegos_show', {'id': juego.id}) }}">show</a>
-                    <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <h1 class="page-title">🎮 CATÁLOGO DE JUEGOS</h1>
+    <a href="{{ path('app_juegos_new') }}"><button class="btn-new">+ NUEVO JUEGO</button></a>
+</div>
 
-    <a href="{{ path('app_juegos_new') }}">Create new</a>
+{% if juegos|length == 0 %}
+<p style="text-align: center; color: #AAAAAA; padding: 60px 20px; font-size: 16px;">No hay juegos disponibles aún. <a href="{{ path('app_juegos_new') }}" style="color: #E43027; text-decoration: none; font-weight: 700; text-transform: uppercase;">CREAR EL PRIMERO →</a></p>
+{% else %}
+
+<div class="games-grid">
+    {% for juego in juegos %}
+    <div class="game-card">
+        <div class="game-card-header">
+            <h2>{{ juego.nombre }}</h2>
+            <span class="badge" style="background: {% if juego.activo %}rgba(76, 175, 80, 0.4){% else %}rgba(244, 67, 54, 0.4){% endif %}">
+                {% if juego.activo %}✓ ACTIVO{% else %}✗ INACTIVO{% endif %}
+            </span>
+        </div>
+        <div class="game-card-footer">
+            <div class="btn-group">
+                <a href="{{ path('app_juegos_play', {'id': juego.id}) }}"><button class="btn-jugar">▶ JUGAR</button></a>
+                <a href="{{ path('app_juegos_show', {'id': juego.id}) }}"><button class="btn-small">VER</button></a>
+                <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}"><button class="btn-small">EDITAR</button></a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endif %}
 {% endblock %}
