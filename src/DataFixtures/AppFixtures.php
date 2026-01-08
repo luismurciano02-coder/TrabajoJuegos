@@ -28,12 +28,10 @@ class AppFixtures extends Fixture
 
         // Juegos demo asociados a las aplicaciones anteriores
         $games = [
-            ['nombre' => 'Ajedrez', 'token' => 'game-token-1', 'activo' => true, 'appIndex' => 0],
             ['nombre' => 'Tetris', 'token' => 'game-token-2', 'activo' => true, 'appIndex' => 0],
             ['nombre' => 'Pacman', 'token' => 'game-token-3', 'activo' => true, 'appIndex' => 1],
             ['nombre' => 'Space Invaders', 'token' => 'game-token-4', 'activo' => true, 'appIndex' => 1],
             ['nombre' => 'Snake', 'token' => 'game-token-5', 'activo' => true, 'appIndex' => 0],
-            ['nombre' => 'Pong', 'token' => 'game-token-6', 'activo' => true, 'appIndex' => 1],
         ];
 
         foreach ($games as $data) {

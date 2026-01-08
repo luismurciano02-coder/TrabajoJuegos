@@ -1,0 +1,269 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ranking - GameCenter{% endblock %}
+
+{% block body %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .navbar {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .navbar h1 {
+        color: #667eea;
+        font-size: 28px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn:hover {
+        background: #764ba2;
+        transform: translateY(-2px);
+    }
+
+    .ranking-section {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+    }
+
+    .ranking-section h2 {
+        color: #667eea;
+        margin-bottom: 25px;
+        font-size: 24px;
+    }
+
+    .game-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .game-btn {
+        padding: 10px 20px;
+        background: #f0f0f0;
+        color: #333;
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .game-btn:hover,
+    .game-btn.active {
+        background: #667eea;
+        color: white;
+    }
+
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .ranking-table th {
+        background: #f8f9fa;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .ranking-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .ranking-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .medal {
+        font-size: 24px;
+        margin-right: 10px;
+    }
+
+    .top-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .podium {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .podium-position {
+        font-size: 36px;
+        margin: 15px 0;
+    }
+
+    .podium-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .podium-score {
+        font-size: 24px;
+        font-weight: 700;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="container">
+    <div class="navbar">
+        <h1>🏆 Ranking Global</h1>
+        <button class="btn" onclick="volver()">Volver</button>
+    </div>
+
+    <div class="ranking-section">
+        <h2>Selecciona un Juego</h2>
+        <div class="game-buttons" id="gameButtons"></div>
+
+        <h2 style="margin-top: 30px;">Top 3</h2>
+        <div class="top-3" id="top3"></div>
+
+        <h2>Top 10</h2>
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Usuario</th>
+                    <th>Puntuación</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody id="rankingTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/';
+    }
+
+    let juegosDisponibles = [];
+
+    async function cargarJuegos() {
+        try {
+            const response = await fetch('/api/juegos');
+            juegosDisponibles = await response.json();
+
+            const buttonsContainer = document.getElementById('gameButtons');
+            buttonsContainer.innerHTML = '';
+
+            juegosDisponibles.forEach((juego, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'game-btn' + (index === 0 ? ' active' : '');
+                btn.textContent = juego.nombre;
+                btn.onclick = () => cargarRankingJuego(juego.id, btn);
+                buttonsContainer.appendChild(btn);
+            });
+
+            if (juegosDisponibles.length > 0) {
+                cargarRankingJuego(juegosDisponibles[0].id, document.querySelector('.game-btn'));
+            }
+        } catch (error) {
+            console.error('Error cargando juegos:', error);
+        }
+    }
+
+    async function cargarRankingJuego(juego_id, btn) {
+        document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        try {
+            const response = await fetch(`/api/ranking/${juego_id}`);
+            const ranking = await response.json();
+
+            // Top 3
+            const top3Container = document.getElementById('top3');
+            top3Container.innerHTML = '';
+
+            ranking.slice(0, 3).forEach((item, index) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const div = document.createElement('div');
+                div.className = 'podium';
+                div.innerHTML = `
+                    <div class="podium-position">${medals[index]}</div>
+                    <div class="podium-name">${item.usuario}</div>
+                    <div class="podium-score">${item.puntuacion} pts</div>
+                    <div style="font-size: 12px; opacity: 0.8; margin-top: 10px;">${item.fecha}</div>
+                `;
+                top3Container.appendChild(div);
+            });
+
+            // Top 10
+            const tbody = document.getElementById('rankingTable');
+            tbody.innerHTML = '';
+
+            ranking.forEach((item, index) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[index] || '•';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="medal">${medal}</span>${index + 1}</td>
+                    <td>${item.usuario}</td>
+                    <td>${item.puntuacion}</td>
+                    <td>${item.fecha}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error cargando ranking:', error);
+        }
+    }
+
+    function volver() {
+        window.location.href = '/dashboard';
+    }
+
+    cargarJuegos();
+</script>
+{% endblock %}

@@ -6,13 +6,31 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class HomeController extends AbstractController
+class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-        return $this->render('home/index.html.twig', [
-            'controller_name' => 'HomeController',
+        return $this->render('home/index.html.twig');
+    }
+
+    #[Route('/dashboard', name: 'app_dashboard')]
+    public function dashboard(): Response
+    {
+        return $this->render('dashboard/index.html.twig');
+    }
+
+    #[Route('/juego/{id}', name: 'app_juego')]
+    public function juego(int $id): Response
+    {
+        return $this->render('juegos/juego.html.twig', [
+            'juego_id' => $id
         ]);
+    }
+
+    #[Route('/ranking', name: 'app_ranking')]
+    public function ranking(): Response
+    {
+        return $this->render('ranking/index.html.twig');
     }
 }
