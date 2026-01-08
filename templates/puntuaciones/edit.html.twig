@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Puntuaciones{% endblock %}
+
+{% block body %}
+    <h1>Edit Puntuaciones</h1>
+
+    {{ include('puntuaciones/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_puntuaciones_index') }}">back to list</a>
+
+    {{ include('puntuaciones/_delete_form.html.twig') }}
+{% endblock %}

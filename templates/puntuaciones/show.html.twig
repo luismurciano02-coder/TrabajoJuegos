@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Puntuaciones{% endblock %}
+
+{% block body %}
+    <h1>Puntuaciones</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ puntuacione.id }}</td>
+            </tr>
+            <tr>
+                <th>Puntuacion</th>
+                <td>{{ puntuacione.puntuacion }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ puntuacione.fecha ? puntuacione.fecha|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_puntuaciones_index') }}">back to list</a>
+
+    <a href="{{ path('app_puntuaciones_edit', {'id': puntuacione.id}) }}">edit</a>
+
+    {{ include('puntuaciones/_delete_form.html.twig') }}
+{% endblock %}
