@@ -1,0 +1,510 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Panel de Control - GameCenter{% endblock %}
+
+{% block body %}
+<nav class="top-nav">
+    <div style="display: flex; gap: 16px; flex: 1; justify-content: center;">
+        <a href="/">Inicio</a>
+        <a href="#juegos">Juegos</a>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <span id="userName" style="color:#fff;font-weight:600;"></span>
+        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
+</nav>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+        background: #0a0e27;
+        min-height: 100vh;
+        padding: 0;
+        color: #fff;
+    }
+
+    .top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 30px;
+        background: linear-gradient(90deg, #1a1f3a 0%, #16213e 100%);
+        border-bottom: 2px solid #00d4ff;
+        height: 70px;
+        z-index: 20;
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
+    }
+
+    .top-nav > div:first-child {
+        display: flex;
+        gap: 8px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .top-nav a {
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .top-nav a:hover {
+        background: #00d4ff;
+        color: #0a0e27;
+        border-color: #00d4ff;
+        transform: translateY(-2px);
+    }
+
+    .top-nav > div:last-child {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    #userName {
+        color: #00d4ff !important;
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-logout {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #ff1744 0%, #d32f2f 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3);
+    }
+
+    .btn-logout:hover {
+        background: linear-gradient(135deg, #ff5252 0%, #ff1744 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 23, 68, 0.5);
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 90px auto 0;
+        padding: 0 20px;
+    }
+
+    .logout-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .btn-logout {
+        padding: 8px 16px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s;
+        white-space: nowrap;
+    }
+
+    .btn-logout:hover {
+        background: #c0392b;
+        transform: translateY(-1px);
+    }
+
+    .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
+        padding: 30px;
+        border-radius: 15px;
+        border: 2px solid #00d4ff;
+        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 48px rgba(0, 212, 255, 0.3);
+        border-color: #00ffff;
+    }
+
+    .stats-card h2 {
+        color: #00d4ff;
+        margin-bottom: 15px;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+    }
+
+    .stats-card .value {
+        font-size: 48px;
+        font-weight: 900;
+        background: linear-gradient(135deg, #00d4ff 0%, #00ffff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .games-section {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
+        padding: 40px;
+        border-radius: 15px;
+        border: 2px solid #00d4ff;
+        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+        scroll-margin-top: 90px;
+    }
+
+    .games-section h2 {
+        color: #00d4ff;
+        margin-bottom: 30px;
+        font-size: 24px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 900;
+    }
+
+    .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .game-card {
+        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        border: 3px solid transparent;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 212, 255, 0.2);
+    }
+
+    .game-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transition: left 0.3s ease;
+    }
+
+    .game-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
+        border-color: #00ffff;
+    }
+
+    .game-card:hover::before {
+        left: 100%;
+    }
+
+    .game-card h3 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        font-weight: 900;
+        position: relative;
+        z-index: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .game-card p {
+        font-size: 12px;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .ranking-section {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
+        padding: 40px;
+        border-radius: 15px;
+        border: 2px solid #00d4ff;
+        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+    }
+
+    .ranking-section h2 {
+        color: #00d4ff;
+        margin-bottom: 25px;
+        font-size: 24px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 900;
+    }
+
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .ranking-table th {
+        background: linear-gradient(90deg, #00d4ff 0%, #0099cc 100%);
+        padding: 18px;
+        text-align: left;
+        font-weight: 900;
+        color: #0a0e27;
+        border: none;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .ranking-table td {
+        padding: 18px;
+        border-bottom: 2px solid #00d4ff;
+        background: rgba(0, 212, 255, 0.05);
+    }
+
+    .ranking-table tr:hover {
+        background: rgba(0, 212, 255, 0.15);
+    }
+
+    .ranking-table tr:nth-child(even) td {
+        background: rgba(0, 212, 255, 0.02);
+    }
+
+    .ranking-table tr:nth-child(even):hover td {
+        background: rgba(0, 212, 255, 0.15);
+    }
+
+    .medal {
+        font-size: 24px;
+        margin-right: 10px;
+        display: inline-block;
+        animation: bounce 0.6s ease-in-out infinite;
+    }
+
+    .medal[data-position="1"] {
+        animation-delay: 0s;
+    }
+
+    .medal[data-position="2"] {
+        animation-delay: 0.1s;
+    }
+
+    .medal[data-position="3"] {
+        animation-delay: 0.2s;
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stats-card,
+    .games-section,
+    .ranking-section {
+        animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    .stats-card:nth-child(1) { animation-delay: 0.1s; }
+    .stats-card:nth-child(2) { animation-delay: 0.2s; }
+    .games-section { animation-delay: 0.3s; }
+    .ranking-section { animation-delay: 0.4s; }
+</style>
+
+<div class="container">
+
+    <div class="content">
+        <div class="stats-card">
+            <h2>Total de Puntos</h2>
+            <div class="value" id="totalPuntos">0</div>
+        </div>
+
+        <div class="stats-card">
+            <h2>Juegos Jugados</h2>
+            <div class="value" id="juegosJugados">0</div>
+        </div>
+
+        <div class="games-section" id="juegos">
+            <h2>Selecciona un Juego</h2>
+            <div class="games-grid" id="gamesGrid"></div>
+        </div>
+
+        <div class="ranking-section">
+            <h2>Top 10 Global</h2>
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Usuario</th>
+                        <th>Juego</th>
+                        <th>Puntos</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+
+    if (!token) {
+        window.location.href = '/';
+    }
+
+    document.getElementById('userName').textContent = usuario.nombre;
+
+    async function cargarJuegos() {
+        try {
+            const response = await fetch('/api/juegos');
+            const juegos = await response.json();
+
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+
+            juegos.forEach(juego => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `<h3>${juego.nombre}</h3><p>Haz clic para jugar</p>`;
+                card.onclick = () => {
+                    window.location.href = '/juego/' + juego.id;
+                };
+                grid.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error cargando juegos:', error);
+        }
+    }
+
+    async function cargarEstadisticas() {
+        try {
+            const response = await fetch(`/api/puntuaciones/usuario/${token}`);
+            
+            if (!response.ok) {
+                console.warn('Error en endpoint de estadísticas:', response.status);
+                document.getElementById('totalPuntos').textContent = '0';
+                document.getElementById('juegosJugados').textContent = '0';
+                return;
+            }
+            
+            const puntuaciones = await response.json();
+            
+            if (Array.isArray(puntuaciones)) {
+                const total = puntuaciones.reduce((sum, p) => sum + p.puntuacion, 0);
+                document.getElementById('totalPuntos').textContent = total;
+                document.getElementById('juegosJugados').textContent = puntuaciones.length;
+            } else {
+                document.getElementById('totalPuntos').textContent = '0';
+                document.getElementById('juegosJugados').textContent = '0';
+            }
+        } catch (error) {
+            console.error('Error cargando estadísticas:', error);
+            document.getElementById('totalPuntos').textContent = '0';
+            document.getElementById('juegosJugados').textContent = '0';
+        }
+    }
+
+    async function cargarRanking() {
+        try {
+            const response = await fetch('/api/ranking/general');
+            const ranking = await response.json();
+
+            const tbody = document.getElementById('rankingTable');
+            tbody.innerHTML = '';
+
+            ranking.forEach((item, index) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[index] || '•';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="medal" data-position="${index + 1}">${medal}</span>${index + 1}</td>
+                    <td>${item.usuario}</td>
+                    <td>${item.juego}</td>
+                    <td>${item.puntuacion}</td>
+                    <td>${item.fecha}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error cargando ranking:', error);
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+        window.location.href = '/';
+    }
+
+    cargarJuegos();
+    cargarEstadisticas();
+    cargarRanking();
+</script>
+{% endblock %}

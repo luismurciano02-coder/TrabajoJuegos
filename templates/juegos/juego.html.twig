@@ -1,0 +1,500 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Juego - GameCenter{% endblock %}
+
+{% block body %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .game-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+
+    .game-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .game-header h1 {
+        font-size: 32px;
+    }
+
+    .game-score {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .game-content {
+        padding: 40px;
+    }
+
+    #gameArea {
+        width: 100%;
+        height: 400px;
+        background: #f0f0f0;
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .game-controls {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .game-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        text-align: center;
+        color: #333;
+    }
+
+    #resultado {
+        font-size: 18px;
+        font-weight: 600;
+        color: #667eea;
+    }
+</style>
+
+<div class="game-container">
+    <div class="game-header">
+        <h1>🎮 <span id="gameName">Juego</span></h1>
+        <div class="game-score">
+            Puntuación: <span id="gameScore">0</span>
+        </div>
+    </div>
+
+    <div class="game-content">
+        <div id="gameArea"></div>
+
+        <div class="game-controls">
+            <button class="btn btn-primary" id="startBtn" onclick="iniciarJuego()">Comenzar Juego</button>
+            <button class="btn btn-secondary" onclick="volver()">Volver</button>
+        </div>
+
+        <div class="game-info">
+            <div id="resultado"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const juego_id = {{ juego_id }};
+    let puntosJuego = 0;
+    let juegoEnCurso = false;
+
+    if (!token) {
+        window.location.href = '/';
+    }
+
+    // Cargar nombre del juego
+    async function cargarNombreJuego() {
+        try {
+            const response = await fetch('/api/juegos');
+            const juegos = await response.json();
+            const juego = juegos.find(j => j.id === juego_id);
+            if (juego) {
+                document.getElementById('gameName').textContent = juego.nombre;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Juego 1: Tres en Raya
+    let tableroTresRaya = ['', '', '', '', '', '', '', '', ''];
+    let turnoJugador = true;
+
+    function juegoTresEnRaya() {
+        const gameArea = document.getElementById('gameArea');
+        tableroTresRaya = ['', '', '', '', '', '', '', '', ''];
+        turnoJugador = true;
+        puntosJuego = 0;
+        juegoEnCurso = true;
+
+        gameArea.innerHTML = `
+            <div style="text-align: center;">
+                <h2>Tres en Raya - Juega contra la IA</h2>
+                <div style="display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; margin: 20px auto; width: fit-content;">
+                    ${Array(9).fill(0).map((_, i) => `<div onclick="clickCelda(${i})" style="width: 100px; height: 100px; background: white; border: 3px solid #667eea; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; border-radius: 10px;" id="celda${i}"></div>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function clickCelda(i) {
+        if (!juegoEnCurso || !turnoJugador || tableroTresRaya[i]) return;
+        
+        tableroTresRaya[i] = 'X';
+        document.getElementById('celda' + i).textContent = 'X';
+        document.getElementById('celda' + i).style.color = '#667eea';
+        
+        if (verificarGanador('X')) {
+            puntosJuego = 100;
+            document.getElementById('gameScore').textContent = puntosJuego;
+            finalizarJuego();
+            return;
+        }
+        
+        if (!tableroTresRaya.includes('')) {
+            finalizarJuego();
+            return;
+        }
+        
+        turnoJugador = false;
+        setTimeout(() => {
+            const vacio = tableroTresRaya.map((v, i) => v === '' ? i : -1).filter(i => i >= 0);
+            const pos = vacio[Math.floor(Math.random() * vacio.length)];
+            tableroTresRaya[pos] = 'O';
+            document.getElementById('celda' + pos).textContent = 'O';
+            document.getElementById('celda' + pos).style.color = '#764ba2';
+            
+            if (verificarGanador('O')) {
+                finalizarJuego();
+            } else if (!tableroTresRaya.includes('')) {
+                finalizarJuego();
+            } else {
+                turnoJugador = true;
+            }
+        }, 500);
+    }
+
+    function verificarGanador(simbolo) {
+        const lineas = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        return lineas.some(linea => linea.every(i => tableroTresRaya[i] === simbolo));
+    }
+
+    // Juego 2: Pong
+    function juegoPong() {
+        const gameArea = document.getElementById('gameArea');
+        puntosJuego = 0;
+        juegoEnCurso = true;
+
+        gameArea.innerHTML = `
+            <div style="width: 100%; height: 100%; background: #222; position: relative; border-radius: 15px;">
+                <div id="pelota" style="width: 15px; height: 15px; background: white; border-radius: 50%; position: absolute; left: 50%; top: 50%;"></div>
+                <div id="paleta" style="width: 15px; height: 80px; background: white; position: absolute; left: 20px; top: 160px; border-radius: 5px;"></div>
+            </div>
+        `;
+
+        let pelota = {x: 400, y: 200, dx: 3, dy: 3};
+        let paleta = 160;
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = gameArea.getBoundingClientRect();
+            paleta = Math.max(0, Math.min(320, e.clientY - rect.top - 40));
+        });
+
+        const loop = setInterval(() => {
+            if (!juegoEnCurso) { clearInterval(loop); return; }
+
+            pelota.x += pelota.dx;
+            pelota.y += pelota.dy;
+
+            if (pelota.y <= 0 || pelota.y >= 385) pelota.dy *= -1;
+            if (pelota.x >= 780) pelota.dx *= -1;
+            
+            if (pelota.x <= 35 && pelota.y >= paleta && pelota.y <= paleta + 80) {
+                pelota.dx *= -1;
+                puntosJuego += 10;
+                document.getElementById('gameScore').textContent = puntosJuego;
+            }
+
+            if (pelota.x < 0) {
+                clearInterval(loop);
+                finalizarJuego();
+                return;
+            }
+
+            document.getElementById('pelota').style.left = pelota.x + 'px';
+            document.getElementById('pelota').style.top = pelota.y + 'px';
+            document.getElementById('paleta').style.top = paleta + 'px';
+        }, 20);
+
+        setTimeout(() => { clearInterval(loop); finalizarJuego(); }, 30000);
+    }
+
+    // Juego 3: Snake
+    function juegoSnake() {
+        const gameArea = document.getElementById('gameArea');
+        puntosJuego = 0;
+        juegoEnCurso = true;
+
+        gameArea.innerHTML = '<canvas id="snakeCanvas" width="400" height="400" style="background: #222; border-radius: 15px;"></canvas>';
+        
+        const canvas = document.getElementById('snakeCanvas');
+        const ctx = canvas.getContext('2d');
+        const grid = 20;
+        let snake = [{x: 200, y: 200}];
+        let comida = {x: 100, y: 100};
+        let dx = grid, dy = 0;
+        let nextDx = grid, nextDy = 0;
+
+        // Evento de teclado con preventDefault para evitar scroll
+        const snakeKeyHandler = (e) => {
+            if (!juegoEnCurso) return;
+            
+            const isArrow = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key);
+            
+            if (!isArrow) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (e.key === 'ArrowUp' && dy === 0) {
+                nextDx = 0;
+                nextDy = -grid;
+            }
+            else if (e.key === 'ArrowDown' && dy === 0) {
+                nextDx = 0;
+                nextDy = grid;
+            }
+            else if (e.key === 'ArrowLeft' && dx === 0) {
+                nextDx = -grid;
+                nextDy = 0;
+            }
+            else if (e.key === 'ArrowRight' && dx === 0) {
+                nextDx = grid;
+                nextDy = 0;
+            }
+        };
+
+        document.addEventListener('keydown', snakeKeyHandler, true);
+
+        const loop = setInterval(() => {
+            if (!juegoEnCurso) {
+                clearInterval(loop);
+                document.removeEventListener('keydown', snakeKeyHandler, true);
+                return;
+            }
+
+            dx = nextDx;
+            dy = nextDy;
+
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            if (head.x < 0 || head.x >= 400 || head.y < 0 || head.y >= 400 || snake.some(s => s.x === head.x && s.y === head.y)) {
+                clearInterval(loop);
+                document.removeEventListener('keydown', snakeKeyHandler);
+                finalizarJuego();
+                return;
+            }
+
+            snake.unshift(head);
+            
+            if (head.x === comida.x && head.y === comida.y) {
+                puntosJuego += 10;
+                document.getElementById('gameScore').textContent = puntosJuego;
+                comida = {x: Math.floor(Math.random() * 20) * grid, y: Math.floor(Math.random() * 20) * grid};
+            } else {
+                snake.pop();
+            }
+
+            // Dibujar canvas
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, 400, 400);
+            
+            // Dibujar serpiente
+            ctx.fillStyle = '#0f0';
+            snake.forEach(s => ctx.fillRect(s.x, s.y, grid - 2, grid - 2));
+            
+            // Dibujar comida
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(comida.x, comida.y, grid - 2, grid - 2);
+        }, 200);
+
+        // Timeout para finalizar el juego después de 60 segundos
+        setTimeout(() => {
+            if (juegoEnCurso) {
+                juegoEnCurso = false;
+                clearInterval(loop);
+                document.removeEventListener('keydown', snakeKeyHandler, true);
+                finalizarJuego();
+            }
+        }, 60000);
+    }
+
+    // Juego 4: Tetris
+    function juegoTetris() {
+        const gameArea = document.getElementById('gameArea');
+        puntosJuego = 0;
+        juegoEnCurso = true;
+
+        gameArea.innerHTML = '<canvas id="tetrisCanvas" width="300" height="400" style="background: #222; border-radius: 15px;"></canvas>';
+        
+        const canvas = document.getElementById('tetrisCanvas');
+        const ctx = canvas.getContext('2d');
+        const grid = 20;
+        const cols = 10, rows = 20;
+        let tablero = Array(rows).fill(0).map(() => Array(cols).fill(0));
+        let pieza = {x: 3, y: 0, forma: [[1,1,1,1]]};
+        const formas = [[[1,1,1,1]], [[1,1],[1,1]], [[1,1,1],[0,1,0]], [[1,1,0],[0,1,1]]];
+
+        const tetrisKeyHandler = (e) => {
+            if (!juegoEnCurso) return;
+            
+            const isArrow = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key);
+            
+            if (!isArrow) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (e.key === 'ArrowLeft') {
+                pieza.x--;
+            }
+            else if (e.key === 'ArrowRight') {
+                pieza.x++;
+            }
+            else if (e.key === 'ArrowDown') {
+                pieza.y++;
+            }
+        };
+
+        document.addEventListener('keydown', tetrisKeyHandler);
+
+        const loop = setInterval(() => {
+            if (!juegoEnCurso) {
+                clearInterval(loop);
+                document.removeEventListener('keydown', tetrisKeyHandler);
+                return;
+            }
+
+            pieza.y++;
+            if (pieza.y + pieza.forma.length >= rows) {
+                pieza.forma.forEach((fila, i) => fila.forEach((v, j) => { if (v) tablero[pieza.y + i][pieza.x + j] = 1; }));
+                pieza = {x: 3, y: 0, forma: formas[Math.floor(Math.random() * formas.length)]};
+                
+                for (let i = rows - 1; i >= 0; i--) {
+                    if (tablero[i].every(v => v === 1)) {
+                        tablero.splice(i, 1);
+                        tablero.unshift(Array(cols).fill(0));
+                        puntosJuego += 10;
+                        document.getElementById('gameScore').textContent = puntosJuego;
+                    }
+                }
+            }
+
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, 300, 400);
+            ctx.fillStyle = '#667eea';
+            tablero.forEach((fila, i) => fila.forEach((v, j) => { if (v) ctx.fillRect(j * grid, i * grid, grid - 2, grid - 2); }));
+            ctx.fillStyle = '#fff';
+            pieza.forma.forEach((fila, i) => fila.forEach((v, j) => { if (v) ctx.fillRect((pieza.x + j) * grid, (pieza.y + i) * grid, grid - 2, grid - 2); }));
+        }, 500);
+
+        setTimeout(() => {
+            if (juegoEnCurso) {
+                juegoEnCurso = false;
+                clearInterval(loop);
+                document.removeEventListener('keydown', tetrisKeyHandler, true);
+                finalizarJuego();
+            }
+        }, 60000);
+    }
+
+    function iniciarJuego() {
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('resultado').textContent = '';
+
+        if (juego_id === 1) juegoTresEnRaya();
+        else if (juego_id === 4) juegoSnake();
+        else if (juego_id === 5) juegoTetris();
+    }
+
+    async function finalizarJuego() {
+        juegoEnCurso = false;
+        document.getElementById('startBtn').disabled = false;
+
+        document.getElementById('resultado').textContent = `¡Juego finalizado! Puntuación: ${puntosJuego}`;
+
+        // Guardar puntuación
+        try {
+            const response = await fetch('/api/puntuaciones', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: token,
+                    juego_id: juego_id,
+                    puntuacion: puntosJuego
+                })
+            });
+
+            if (response.ok) {
+                document.getElementById('resultado').textContent += ' - Puntuación guardada ✓';
+            }
+        } catch (error) {
+            console.error('Error guardando puntuación:', error);
+        }
+    }
+
+    function volver() {
+        window.location.href = '/dashboard';
+    }
+
+    cargarNombreJuego();
+</script>
+{% endblock %}
