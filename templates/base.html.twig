@@ -37,6 +37,14 @@
                 <a href="{{ path('app_home') }}">Inicio</a>
                 <a href="{{ path('app_juegos_index') }}">Catálogo</a>
                 <a href="{{ path('app_api') }}">API</a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('admin_dashboard') }}" style="background: #FFB600; color: #000; font-weight: 700;">⚙️ Admin</a>
+                {% endif %}
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <a href="{{ path('app_logout') }}" style="background: #E74C3C; margin-left: auto;">🚪 Cerrar sesión</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" style="background: #28a745; margin-left: auto;">🔓 Iniciar sesión</a>
+                {% endif %}
             </div>
         </nav>
         <div class="container">

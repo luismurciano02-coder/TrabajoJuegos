@@ -279,4 +279,14 @@ class ApiController extends AbstractController
             'activo' => $user->isActivo()
         ]);
     }
+
+    // ==================== DOCUMENTACIÓN ====================
+
+    #[Route('', name: 'app_api', methods: ['GET'])]
+    public function index(): \Symfony\Component\HttpFoundation\Response
+    {
+        return $this->render('api/index.html.twig', [
+            'controller_name' => 'ApiController',
+        ]);
+    }
 }

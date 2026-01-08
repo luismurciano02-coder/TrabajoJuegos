@@ -4,9 +4,56 @@
 {% block title %}Panel de Control - Eugenio{% endblock %}
 
 {% block body %}
+<style>
+    .admin-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .admin-link-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .admin-link-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    .admin-link-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.3em;
+    }
+
+    .admin-link-card p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95em;
+    }
+</style>
+
 <div class="container mt-4">
     <h1>Panel de Administración </h1>
     <hr>
+
+    <div class="admin-links">
+        <a href="{{ path('admin_usuarios') }}" class="admin-link-card">
+            <h3>👥 Gestión de Usuarios</h3>
+            <p>Ver todos los usuarios con sus tokens</p>
+        </a>
+        <a href="{{ path('admin_tokens') }}" class="admin-link-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>🔑 Tokens de Apps</h3>
+            <p>Administrar tokens de aplicaciones</p>
+        </a>
+    </div>
 
     <div class="row text-center mb-4">
         <div class="col-md-6">
@@ -32,15 +79,15 @@
             </tr>
         </thead>
         <tbody>
-            {% for jugada in historico_completo %}
+            {% for puntuacion in historico_completo %}
                 <tr>
-                    <td>{{ jugada.user.username }}</td>
-                    <td>{{ jugada.juegoNombre }}</td>
-                    <td><strong>{{ jugada.puntos }}</strong></td>
-                    <td>{{ jugada.fecha|date('d/m/Y H:i') }}</td>
+                    <td>{{ puntuacion.user.nombre|default(puntuacion.user.email) }}</td>
+                    <td>{{ puntuacion.juego.nombre }}</td>
+                    <td><strong>{{ puntuacion.puntuacion }}</strong></td>
+                    <td>{{ puntuacion.fecha|date('d/m/Y H:i') }}</td>
                 </tr>
             {% else %}
-                <tr><td colspan="4">No hay jugadas registradas aún.</td></tr>
+                <tr><td colspan="4">No hay puntuaciones registradas aún.</td></tr>
             {% endfor %}
         </tbody>
     </table>

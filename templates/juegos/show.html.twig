@@ -1,34 +1,254 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Juegos{% endblock %}
+{% block title %}{{ juego.nombre }} - Juegos{% endblock %}
 
 {% block body %}
-    <h1>Juegos</h1>
+<style>
+    .juego-header {
+        background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 24px rgba(228, 48, 39, 0.3);
+    }
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ juego.id }}</td>
-            </tr>
-            <tr>
-                <th>Nombre</th>
-                <td>{{ juego.nombre }}</td>
-            </tr>
-            <tr>
-                <th>Activo</th>
-                <td>{{ juego.activo ? 'Yes' : 'No' }}</td>
-            </tr>
-            <tr>
-                <th>Token</th>
-                <td>{{ juego.token }}</td>
-            </tr>
-        </tbody>
-    </table>
+    .juego-header h1 {
+        margin: 0 0 15px 0;
+        font-size: 2.5em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 
-    <a href="{{ path('app_juegos_index') }}">back to list</a>
+    .juego-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
 
-    <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}">edit</a>
+    .info-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
 
-    {{ include('juegos/_delete_form.html.twig') }}
+    .info-card h3 {
+        margin: 0 0 10px 0;
+        color: #E43027;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-card p {
+        margin: 0;
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(228, 48, 39, 0.4);
+    }
+
+    .btn-secondary {
+        background: #444444;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #555555;
+        transform: translateY(-2px);
+    }
+
+    .ranking-section {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .ranking-section h2 {
+        margin: 0 0 20px 0;
+        color: #E43027;
+        font-size: 1.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .ranking-table thead {
+        background-color: #E43027;
+        color: white;
+    }
+
+    .ranking-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #E43027;
+    }
+
+    .ranking-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .ranking-table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .ranking-position {
+        font-weight: 700;
+        color: #E43027;
+        font-size: 1.1em;
+    }
+
+    .ranking-position.gold {
+        color: #FFD700;
+        font-size: 1.3em;
+    }
+
+    .ranking-position.silver {
+        color: #C0C0C0;
+        font-size: 1.2em;
+    }
+
+    .ranking-position.bronze {
+        color: #CD7F32;
+        font-size: 1.1em;
+    }
+
+    .no-ranking {
+        padding: 40px;
+        text-align: center;
+        color: #999;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 16px;
+        background-color: #444444;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+
+    .back-link:hover {
+        background-color: #555555;
+    }
+</style>
+
+<a href="{{ path('app_juegos_index') }}" class="back-link">← VOLVER AL CATÁLOGO</a>
+
+<div class="juego-header">
+    <h1>🎮 {{ juego.nombre }}</h1>
+    <p style="margin: 0; opacity: 0.95;">ID: {{ juego.id }} | Token: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">{{ juego.token }}</code></p>
+</div>
+
+<div class="juego-info">
+    <div class="info-card">
+        <h3>Estado</h3>
+        <p style="color: {% if juego.activo %}#28a745{% else %}#dc3545{% endif %};">
+            {% if juego.activo %}✓ ACTIVO{% else %}✗ INACTIVO{% endif %}
+        </p>
+    </div>
+    <div class="info-card">
+        <h3>ID del Juego</h3>
+        <p>{{ juego.id }}</p>
+    </div>
+</div>
+
+<div class="btn-group">
+    <a href="{{ path('app_juegos_play', {'id': juego.id}) }}" class="btn btn-primary">▶ JUGAR AHORA</a>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}" class="btn btn-secondary">✏️ EDITAR</a>
+        {{ include('juegos/_delete_form.html.twig') }}
+    {% endif %}
+</div>
+
+<hr style="margin: 40px 0; border: none; border-top: 2px solid #eee;">
+
+<!-- RANKING -->
+<div class="ranking-section">
+    <h2>🏆 Ranking de Puntuaciones</h2>
+    
+    {% if puntuaciones|length > 0 %}
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">Posición</th>
+                    <th>Jugador</th>
+                    <th style="width: 150px; text-align: right;">Puntuación</th>
+                    <th style="width: 150px; text-align: right;">Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for index, puntuacion in puntuaciones %}
+                    <tr>
+                        <td>
+                            {% if index == 0 %}
+                                <span class="ranking-position gold">🥇 1º</span>
+                            {% elseif index == 1 %}
+                                <span class="ranking-position silver">🥈 2º</span>
+                            {% elseif index == 2 %}
+                                <span class="ranking-position bronze">🥉 3º</span>
+                            {% else %}
+                                <span class="ranking-position">{{ index + 1 }}º</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="margin-bottom: 4px;"><strong>{{ puntuacion.user.nombre|default(puntuacion.user.email) }}</strong></div>
+                            <div style="color: #000; font-size: 0.9em;">{{ puntuacion.user.email }}</div>
+                        </td>
+                        <td style="text-align: right; font-weight: 600; color: #E43027;">{{ puntuacion.puntuacion }}</td>
+                        <td style="text-align: right; color: #999;">{{ puntuacion.fecha|date('d/m/Y H:i') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="no-ranking">
+            <p>Aún no hay puntuaciones para este juego. ¡Sé el primero en jugar!</p>
+        </div>
+    {% endif %}
+</div>
+
 {% endblock %}
+

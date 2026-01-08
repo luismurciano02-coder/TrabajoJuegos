@@ -23,11 +23,13 @@
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
     <h1 class="page-title">🎮 CATÁLOGO DE JUEGOS</h1>
-    <a href="{{ path('app_juegos_new') }}"><button class="btn-new">+ NUEVO JUEGO</button></a>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_juegos_new') }}"><button class="btn-new">+ NUEVO JUEGO</button></a>
+    {% endif %}
 </div>
 
 {% if juegos|length == 0 %}
-<p style="text-align: center; color: #AAAAAA; padding: 60px 20px; font-size: 16px;">No hay juegos disponibles aún. <a href="{{ path('app_juegos_new') }}" style="color: #E43027; text-decoration: none; font-weight: 700; text-transform: uppercase;">CREAR EL PRIMERO →</a></p>
+<p style="text-align: center; color: #AAAAAA; padding: 60px 20px; font-size: 16px;">No hay juegos disponibles aún. {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_juegos_new') }}" style="color: #E43027; text-decoration: none; font-weight: 700; text-transform: uppercase;">CREAR EL PRIMERO →</a>{% endif %}</p>
 {% else %}
 
 <div class="games-grid">
@@ -43,7 +45,9 @@
             <div class="btn-group">
                 <a href="{{ path('app_juegos_play', {'id': juego.id}) }}"><button class="btn-jugar">▶ JUGAR</button></a>
                 <a href="{{ path('app_juegos_show', {'id': juego.id}) }}"><button class="btn-small">VER</button></a>
-                <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}"><button class="btn-small">EDITAR</button></a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}"><button class="btn-small">EDITAR</button></a>
+                {% endif %}
             </div>
         </div>
     </div>
