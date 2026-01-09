@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Juegos;
 use App\Form\JuegosType;
 use App\Repository\JuegosRepository;
+use App\Repository\PuntuacionesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,11 +43,27 @@ final class JuegosController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_juegos_show', methods: ['GET'])]
-    public function show(Juegos $juego): Response
+    #[Route('/{id}/play', name: 'app_juegos_play', methods: ['GET'])]
+    public function play(Juegos $juego): Response
     {
+        return $this->render('juegos/play.html.twig', [
+            'juego' => $juego,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_juegos_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'app_juegos_show', methods: ['GET'])]
+    public function show(Juegos $juego, PuntuacionesRepository $puntuacionesRepository): Response
+    {
+        // Obtener las puntuaciones del juego, ordenadas por puntuación descendente
+        $puntuaciones = $puntuacionesRepository->findBy(
+            ['juego' => $juego],
+            ['puntuacion' => 'DESC']
+        );
+
         return $this->render('juegos/show.html.twig', [
             'juego' => $juego,
+            'puntuaciones' => $puntuaciones,
         ]);
     }
 

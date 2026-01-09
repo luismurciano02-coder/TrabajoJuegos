@@ -18,16 +18,16 @@ class Aplicaciones
     #[ORM\Column(length: 150)]
     private ?string $nombre = null;
 
+    #[ORM\Column(length: 255, unique: true)]
+    private ?string $apikey = null;
+
     #[ORM\Column(nullable: true)]
     private ?bool $activo = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $apikey = null;
 
     /**
      * @var Collection<int, Juegos>
      */
-    #[ORM\OneToMany(targetEntity: Juegos::class, mappedBy: 'aplicacion')]
+    #[ORM\OneToMany(mappedBy: 'aplicacion', targetEntity: Juegos::class, cascade: ['persist'])]
     private Collection $jugando;
 
     public function __construct()
@@ -52,6 +52,18 @@ class Aplicaciones
         return $this;
     }
 
+    public function getApikey(): ?string
+    {
+        return $this->apikey;
+    }
+
+    public function setApikey(string $apikey): static
+    {
+        $this->apikey = $apikey;
+
+        return $this;
+    }
+
     public function isActivo(): ?bool
     {
         return $this->activo;
@@ -64,18 +76,6 @@ class Aplicaciones
         return $this;
     }
 
-    public function getApikey(): ?string
-    {
-        return $this->apikey;
-    }
-
-    public function setApikey(?string $apikey): static
-    {
-        $this->apikey = $apikey;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, Juegos>
      */
@@ -84,23 +84,20 @@ class Aplicaciones
         return $this->jugando;
     }
 
-    public function addJugando(Juegos $jugando): static
+    public function addJugando(Juegos $juego): static
     {
-        if (!$this->jugando->contains($jugando)) {
-            $this->jugando->add($jugando);
-            $jugando->setAplicacion($this);
+        if (!$this->jugando->contains($juego)) {
+            $this->jugando->add($juego);
+            $juego->setAplicacion($this);
         }
 
         return $this;
     }
 
-    public function removeJugando(Juegos $jugando): static
+    public function removeJugando(Juegos $juego): static
     {
-        if ($this->jugando->removeElement($jugando)) {
-            // set the owning side to null (unless already changed)
-            if ($jugando->getAplicacion() === $this) {
-                $jugando->setAplicacion(null);
-            }
+        if ($this->jugando->removeElement($juego) && $juego->getAplicacion() === $this) {
+            $juego->setAplicacion(null);
         }
 
         return $this;

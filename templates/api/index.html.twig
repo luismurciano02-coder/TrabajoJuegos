@@ -1,20 +1,918 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello ApiController!{% endblock %}
+{% block title %}📡 API - Documentación de Endpoints{% endblock %}
 
 {% block body %}
 <style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #1a1a1a;
+        border-bottom: 3px solid #007bff;
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+    }
+
+    h2 {
+        color: #007bff;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+        padding-left: 15px;
+    }
+
+    .endpoint {
+        background-color: white;
+        border-left: 5px solid #28a745;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .endpoint.get {
+        border-left-color: #0066cc;
+    }
+
+    .endpoint.post {
+        border-left-color: #28a745;
+    }
+
+    .method-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+        margin-right: 10px;
+        color: white;
+        font-size: 12px;
+    }
+
+    .method-badge.get {
+        background-color: #0066cc;
+    }
+
+    .method-badge.post {
+        background-color: #28a745;
+    }
+
+    .endpoint-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .endpoint-url {
+        font-family: 'Courier New', monospace;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 3px;
+        margin: 10px 0;
+        border-left: 3px solid #007bff;
+        color: #0066cc;
+    }
+
+    .section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 3px;
+        margin: 15px 0;
+        border-left: 3px solid #6c757d;
+    }
+
+    .section h4 {
+        margin-top: 0;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #6c757d;
+    }
+
+    .code-block {
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 3px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        margin: 10px 0;
+    }
+
+    .code-block code {
+        color: #d4d4d4;
+    }
+
+    .response-success {
+        border-left-color: #28a745;
+    }
+
+    .response-error {
+        border-left-color: #dc3545;
+    }
+
+    .param-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+    }
+
+    .param-table th {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .param-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .param-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .param-name {
+        font-family: 'Courier New', monospace;
+        color: #0066cc;
+        font-weight: 600;
+    }
+
+    .required {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .description {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .info-box {
+        background-color: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 3px;
+    }
+
+    .info-box strong {
+        color: #1565c0;
+    }
+
+    .postman-section {
+        background-color: #f0f4f8;
+        padding: 15px;
+        border-radius: 3px;
+        margin: 15px 0;
+        border-left: 3px solid #FF6C37;
+    }
+
+    .postman-section h4 {
+        margin-top: 0;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #FF6C37;
+    }
+
+    .postman-steps {
+        list-style: none;
+        padding: 0;
+    }
+
+    .postman-steps li {
+        padding: 10px;
+        margin: 8px 0;
+        background-color: white;
+        border-left: 3px solid #FF6C37;
+        border-radius: 3px;
+    }
+
+    .postman-steps strong {
+        color: #FF6C37;
+    }
+
+    .copy-button {
+        display: inline-block;
+        background-color: #FF6C37;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 3px;
+        font-size: 12px;
+        cursor: pointer;
+        border: none;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .copy-button:hover {
+        background-color: #E55A2B;
+    }
 </style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+<div class="container">
+    <h1>📡 Documentación de API</h1>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/xampp/htdocs/TrabajoJuegos/src/Controller/ApiController.php</code></li>
-        <li>Your template at <code>C:/xampp/htdocs/TrabajoJuegos/templates/api/index.html.twig</code></li>
-    </ul>
+    <div class="info-box">
+        <strong>ℹ️ Información importante:</strong><br>
+        Todos los endpoints requieren los datos en formato JSON en el body de la solicitud POST (excepto donde se especifique).
+    </div>
+
+    <!-- ENDPOINT 1: CONEXIÓN -->
+    <div class="endpoint post">
+        <div class="endpoint-title">
+            <span class="method-badge post">POST</span>
+            <h3 style="margin: 0;">Conexión a la API</h3>
+        </div>
+        
+        <div class="endpoint-url">/api/conexion</div>
+
+        <div class="section">
+            <h4>📋 Descripción</h4>
+            <p>Valida la API-KEY de la aplicación y genera un token de acceso (JWT) para autenticación posterior.</p>
+        </div>
+
+        <div class="section">
+            <h4>📥 Parámetros Requeridos</h4>
+            <table class="param-table">
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+                <tr>
+                    <td><span class="param-name">api_key</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - La clave API de tu aplicación</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>✅ Respuesta Exitosa (200)</h4>
+            <div class="code-block">
+<code>{
+  "success": true,
+  "message": "Conexión exitosa",
+  "data": {
+    "api_key": "tu-api-key",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "aplicacion": "Nombre de la Aplicación"
+  }
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>❌ Respuesta de Error (401)</h4>
+            <p><strong>Cuando API-KEY es inválida o no existe:</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Conexión no permitida, API-KEY inválida",
+  "data": ""
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>📤 Ejemplo de Solicitud</h4>
+            <div class="code-block">
+<code>POST /api/conexion HTTP/1.1
+Content-Type: application/json
+
+{
+  "api_key": "tu-clave-api-aqui"
+}</code>
+            </div>
+        </div>
+
+        <div class="postman-section">
+            <h4>🔶 Cómo hacerlo en Postman</h4>
+            <ol class="postman-steps">
+                <li><strong>1. Método HTTP:</strong> Selecciona <strong>POST</strong></li>
+                <li><strong>2. URL:</strong> Escribe <code>http://localhost:8000/api/conexion</code></li>
+                <li><strong>3. Headers:</strong> Ve a la pestaña <strong>Headers</strong> y agrega:
+                    <div class="code-block"><code>Content-Type: application/json</code></div>
+                </li>
+                <li><strong>4. Body:</strong> Ve a la pestaña <strong>Body</strong>, selecciona <strong>raw</strong> y <strong>JSON</strong>, luego pega:
+                    <div class="code-block"><code>{
+  "api_key": "tu-clave-api-aqui"
+}</code></div>
+                </li>
+                <li><strong>5. Click en Send</strong> para enviar la solicitud</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ENDPOINT 2: LOGIN -->
+    <div class="endpoint post">
+        <div class="endpoint-title">
+            <span class="method-badge post">POST</span>
+            <h3 style="margin: 0;">Login de Usuario</h3>
+        </div>
+        
+        <div class="endpoint-url">/api/login</div>
+
+        <div class="section">
+            <h4>📋 Descripción</h4>
+            <p>Valida las credenciales del usuario y devuelve su token personal junto con el listado de juegos disponibles.</p>
+        </div>
+
+        <div class="section">
+            <h4>📥 Parámetros Requeridos</h4>
+            <table class="param-table">
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+                <tr>
+                    <td><span class="param-name">api_key</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - La clave API de la aplicación</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">usuario</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Email del usuario</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">password</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Contraseña del usuario</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>✅ Respuesta Exitosa (200)</h4>
+            <div class="code-block">
+<code>{
+  "success": true,
+  "message": "Usuario válido",
+  "data": {
+    "usuario_token": "abc123def456ghi789jkl012mno345pq",
+    "Listado juegos": [
+      {
+        "juego": "Nombre del Juego 1",
+        "Partidas": "5",
+        "token": "token-del-juego-1"
+      },
+      {
+        "juego": "Nombre del Juego 2",
+        "Partidas": "3",
+        "token": "token-del-juego-2"
+      }
+    ]
+  }
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>❌ Respuestas de Error</h4>
+            <p><strong>Cuando faltan parámetros (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Faltan datos requeridos (api_key, usuario, password)",
+  "data": ""
+}</code>
+            </div>
+            <p><strong>Cuando API-KEY es inválida (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Conexión no permitida, API-KEY inválida",
+  "data": ""
+}</code>
+            </div>
+            <p><strong>Cuando el usuario no existe (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Usuario no encontrado",
+  "data": ""
+}</code>
+            </div>
+            <p><strong>Cuando la contraseña es incorrecta (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Contraseña incorrecta",
+  "data": {
+    "debug": "Password en BD: ...",
+    "debug2": "Password enviada: ..."
+  }
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>📤 Ejemplo de Solicitud</h4>
+            <div class="code-block">
+<code>POST /api/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "api_key": "tu-clave-api",
+  "usuario": "usuario@example.com",
+  "password": "contraseña123"
+}</code>
+            </div>
+        </div>
+
+        <div class="postman-section">
+            <h4>🔶 Cómo hacerlo en Postman</h4>
+            <ol class="postman-steps">
+                <li><strong>1. Método HTTP:</strong> Selecciona <strong>POST</strong></li>
+                <li><strong>2. URL:</strong> Escribe <code>http://localhost:8000/api/login</code></li>
+                <li><strong>3. Headers:</strong> Ve a la pestaña <strong>Headers</strong> y agrega:
+                    <div class="code-block"><code>Content-Type: application/json</code></div>
+                </li>
+                <li><strong>4. Body:</strong> Ve a la pestaña <strong>Body</strong>, selecciona <strong>raw</strong> y <strong>JSON</strong>, luego pega:
+                    <div class="code-block"><code>{
+  "api_key": "tu-clave-api",
+  "usuario": "usuario@example.com",
+  "password": "contraseña123"
+}</code></div>
+                </li>
+                <li><strong>5. Click en Send</strong> para enviar la solicitud</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ENDPOINT 3: REGISTRO -->
+    <div class="endpoint post">
+        <div class="endpoint-title">
+            <span class="method-badge post">POST</span>
+            <h3 style="margin: 0;">Registro de Nuevo Usuario</h3>
+        </div>
+        
+        <div class="endpoint-url">/api/registro</div>
+
+        <div class="section">
+            <h4>📋 Descripción</h4>
+            <p>Registra un nuevo usuario en el sistema y devuelve su token personal junto con el listado de juegos disponibles.</p>
+        </div>
+
+        <div class="section">
+            <h4>📥 Parámetros Requeridos</h4>
+            <table class="param-table">
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+                <tr>
+                    <td><span class="param-name">api_key</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - La clave API de la aplicación</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">nombre</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Nombre completo del usuario</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">email</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Email único del usuario</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">password</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Contraseña del usuario</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>✅ Respuesta Exitosa (200)</h4>
+            <div class="code-block">
+<code>{
+  "success": true,
+  "message": "Usuario registrado",
+  "data": {
+    "usuario_token": "xyz789abc456def123ghi789jkl012mno",
+    "Listado juegos": [
+      {
+        "juego": "Nombre del Juego 1",
+        "Partidas": "0",
+        "token": "token-del-juego-1"
+      },
+      {
+        "juego": "Nombre del Juego 2",
+        "Partidas": "0",
+        "token": "token-del-juego-2"
+      }
+    ]
+  }
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>❌ Respuestas de Error</h4>
+            <p><strong>Cuando el JSON es inválido (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error en el registro del nuevo usuario",
+  "data": "JSON inválido. Verifica el formato del Body."
+}</code>
+            </div>
+            <p><strong>Cuando faltan campos (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error en el registro del nuevo usuario",
+  "data": "Faltan campos: nombre, email. Datos recibidos: api_key, password"
+}</code>
+            </div>
+            <p><strong>Cuando API-KEY es inválida (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error en el registro del nuevo usuario",
+  "data": "API-KEY inválida"
+}</code>
+            </div>
+            <p><strong>Cuando el email ya existe (409):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error en el registro del nuevo usuario",
+  "data": "La cuenta ya está dada de alta"
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>📤 Ejemplo de Solicitud</h4>
+            <div class="code-block">
+<code>POST /api/registro HTTP/1.1
+Content-Type: application/json
+
+{
+  "api_key": "tu-clave-api",
+  "nombre": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "miContraseña123"
+}</code>
+            </div>
+        </div>
+
+        <div class="postman-section">
+            <h4>🔶 Cómo hacerlo en Postman</h4>
+            <ol class="postman-steps">
+                <li><strong>1. Método HTTP:</strong> Selecciona <strong>POST</strong></li>
+                <li><strong>2. URL:</strong> Escribe <code>http://localhost:8000/api/registro</code></li>
+                <li><strong>3. Headers:</strong> Ve a la pestaña <strong>Headers</strong> y agrega:
+                    <div class="code-block"><code>Content-Type: application/json</code></div>
+                </li>
+                <li><strong>4. Body:</strong> Ve a la pestaña <strong>Body</strong>, selecciona <strong>raw</strong> y <strong>JSON</strong>, luego pega:
+                    <div class="code-block"><code>{
+  "api_key": "tu-clave-api",
+  "nombre": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "miContraseña123"
+}</code></div>
+                </li>
+                <li><strong>5. Click en Send</strong> para enviar la solicitud</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ENDPOINT 4: OBTENER JUEGO -->
+    <div class="endpoint post">
+        <div class="endpoint-title">
+            <span class="method-badge post">POST</span>
+            <h3 style="margin: 0;">Obtener Información del Juego</h3>
+        </div>
+        
+        <div class="endpoint-url">/api/juego</div>
+
+        <div class="section">
+            <h4>📋 Descripción</h4>
+            <p>Obtiene la información de un juego específico, incluyendo la puntuación del usuario y el ranking de los 10 mejores jugadores.</p>
+        </div>
+
+        <div class="section">
+            <h4>📥 Parámetros Requeridos</h4>
+            <table class="param-table">
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+                <tr>
+                    <td><span class="param-name">api_key</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - La clave API de la aplicación</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">token_usuario</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Token del usuario (obtenido en login/registro)</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">token_juego</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Token del juego específico</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>✅ Respuesta Exitosa (200)</h4>
+            <div class="code-block">
+<code>{
+  "success": true,
+  "message": "Listado de resultados del juego",
+  "data": {
+    "Puntos usuario": "1500",
+    "Listado jugadores": [
+      {
+        "jugador": "Juan Pérez",
+        "Puntos": "5000"
+      },
+      {
+        "jugador": "María García",
+        "Puntos": "4800"
+      },
+      {
+        "jugador": "Carlos López",
+        "Puntos": "4500"
+      }
+    ]
+  }
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>❌ Respuestas de Error</h4>
+            <p><strong>Cuando el JSON es inválido (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "JSON inválido"
+}</code>
+            </div>
+            <p><strong>Cuando faltan campos (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "Faltan campos: token_juego. Campos recibidos: api_key, token_usuario"
+}</code>
+            </div>
+            <p><strong>Cuando API-KEY es inválida (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "API-KEY inválida"
+}</code>
+            </div>
+            <p><strong>Cuando el token de usuario es inválido (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "Token de usuario inválido"
+}</code>
+            </div>
+            <p><strong>Cuando el token de juego es inválido (404):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "Token de juego inválido o no pertenece a la aplicación"
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>📤 Ejemplo de Solicitud</h4>
+            <div class="code-block">
+<code>POST /api/juego HTTP/1.1
+Content-Type: application/json
+
+{
+  "api_key": "tu-clave-api",
+  "token_usuario": "abc123def456ghi789jkl012mno345pq",
+  "token_juego": "juego-token-123"
+}</code>
+            </div>
+        </div>
+
+        <div class="postman-section">
+            <h4>🔶 Cómo hacerlo en Postman</h4>
+            <ol class="postman-steps">
+                <li><strong>1. Método HTTP:</strong> Selecciona <strong>POST</strong></li>
+                <li><strong>2. URL:</strong> Escribe <code>http://localhost:8000/api/juego</code></li>
+                <li><strong>3. Headers:</strong> Ve a la pestaña <strong>Headers</strong> y agrega:
+                    <div class="code-block"><code>Content-Type: application/json</code></div>
+                </li>
+                <li><strong>4. Body:</strong> Ve a la pestaña <strong>Body</strong>, selecciona <strong>raw</strong> y <strong>JSON</strong>, luego pega:
+                    <div class="code-block"><code>{
+  "api_key": "tu-clave-api",
+  "token_usuario": "abc123def456ghi789jkl012mno345pq",
+  "token_juego": "juego-token-123"
+}</code></div>
+                </li>
+                <li><strong>5. Click en Send</strong> para enviar la solicitud</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ENDPOINT 5: GUARDAR PUNTUACIÓN -->
+    <div class="endpoint post">
+        <div class="endpoint-title">
+            <span class="method-badge post">POST</span>
+            <h3 style="margin: 0;">Guardar Puntuación de Juego</h3>
+        </div>
+        
+        <div class="endpoint-url">/api/juego/guardar</div>
+
+        <div class="section">
+            <h4>📋 Descripción</h4>
+            <p>Guarda la puntuación de una partida completada por un usuario en un juego específico. Devuelve el ranking actualizado.</p>
+        </div>
+
+        <div class="section">
+            <h4>📥 Parámetros Requeridos</h4>
+            <table class="param-table">
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                </tr>
+                <tr>
+                    <td><span class="param-name">api_key</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - La clave API de la aplicación</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">token_usuario</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Token del usuario (obtenido en login/registro)</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">token_juego</span></td>
+                    <td>string</td>
+                    <td><span class="required">Requerido</span> - Token del juego específico</td>
+                </tr>
+                <tr>
+                    <td><span class="param-name">puntos</span></td>
+                    <td>integer</td>
+                    <td><span class="required">Requerido</span> - Puntuación obtenida en la partida</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h4>✅ Respuesta Exitosa (200)</h4>
+            <div class="code-block">
+<code>{
+  "success": true,
+  "message": "Listado de resultados del juego",
+  "data": {
+    "usuario_token": "abc123def456ghi789jkl012mno345pq",
+    "Listado jugadores": [
+      {
+        "jugador": "Juan Pérez",
+        "Puntos": "5000"
+      },
+      {
+        "jugador": "María García",
+        "Puntos": "4800"
+      },
+      {
+        "jugador": "Carlos López",
+        "Puntos": "4500"
+      }
+    ]
+  }
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>❌ Respuestas de Error</h4>
+            <p><strong>Cuando el JSON es inválido (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "JSON inválido"
+}</code>
+            </div>
+            <p><strong>Cuando faltan campos (400):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "Faltan campos: puntos. Campos recibidos: api_key, token_usuario, token_juego"
+}</code>
+            </div>
+            <p><strong>Cuando API-KEY es inválida (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "API-KEY inválida"
+}</code>
+            </div>
+            <p><strong>Cuando el token de usuario es inválido (401):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "Token de usuario inválido"
+}</code>
+            </div>
+            <p><strong>Cuando el token de juego es inválido (404):</strong></p>
+            <div class="code-block">
+<code>{
+  "success": false,
+  "message": "Error, no hay registro de ese juego",
+  "data": "Token de juego inválido o no pertenece a la aplicación"
+}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>📤 Ejemplo de Solicitud</h4>
+            <div class="code-block">
+<code>POST /api/juego/guardar HTTP/1.1
+Content-Type: application/json
+
+{
+  "api_key": "tu-clave-api",
+  "token_usuario": "abc123def456ghi789jkl012mno345pq",
+  "token_juego": "juego-token-123",
+  "puntos": 2500
+}</code>
+            </div>
+        </div>
+
+        <div class="postman-section">
+            <h4>🔶 Cómo hacerlo en Postman</h4>
+            <ol class="postman-steps">
+                <li><strong>1. Método HTTP:</strong> Selecciona <strong>POST</strong></li>
+                <li><strong>2. URL:</strong> Escribe <code>http://localhost:8000/api/juego/guardar</code></li>
+                <li><strong>3. Headers:</strong> Ve a la pestaña <strong>Headers</strong> y agrega:
+                    <div class="code-block"><code>Content-Type: application/json</code></div>
+                </li>
+                <li><strong>4. Body:</strong> Ve a la pestaña <strong>Body</strong>, selecciona <strong>raw</strong> y <strong>JSON</strong>, luego pega:
+                    <div class="code-block"><code>{
+  "api_key": "tu-clave-api",
+  "token_usuario": "abc123def456ghi789jkl012mno345pq",
+  "token_juego": "juego-token-123",
+  "puntos": 2500
+}</code></div>
+                </li>
+                <li><strong>5. Click en Send</strong> para enviar la solicitud</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="info-box" style="margin-top: 40px;">
+        <strong>💡 Nota importante:</strong><br>
+        Todos los endpoints devuelven respuestas JSON. En caso de error, siempre recibirás un objeto con <code style="background: rgba(0,0,0,0.1); padding: 2px 5px;">success: false</code> y un mensaje descriptivo del error.
+    </div>
+
+    <div class="info-box" style="margin-top: 20px; background-color: #fff8e1; border-left-color: #FFC107;">
+        <strong>🔶 Sobre Postman:</strong><br>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li><strong>Descarga Postman:</strong> Ve a <a href="https://www.postman.com/downloads/" target="_blank" style="color: #FF6C37;">postman.com/downloads</a></li>
+            <li><strong>Para cada request:</strong> Solo cambia la URL y el body según el endpoint</li>
+            <li><strong>Headers:</strong> Siempre asegúrate de incluir <code>Content-Type: application/json</code></li>
+            <li><strong>Guarda tus requests:</strong> Postman permite guardar colecciones de requests para reutilizarlas</li>
+            <li><strong>Variables de entorno:</strong> Puedes crear variables en Postman para reutilizar valores como api_key o tokens</li>
+        </ul>
+    </div>
+
 </div>
 {% endblock %}

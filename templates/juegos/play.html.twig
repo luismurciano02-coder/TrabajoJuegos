@@ -1,0 +1,1125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Jugando {{ juego.nombre }}{% endblock %}
+
+{% block body %}
+<style>
+    .play-container { max-width: 900px; margin: 0 auto; }
+    .play-header { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 32px; border-radius: 12px; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: 0 8px 24px rgba(228, 48, 39, 0.3); }
+    .play-header h1 { margin: 0; font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+    .play-header-info { font-size: 13px; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    
+    .game-area { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); padding: 50px 40px; text-align: center; margin-bottom: 32px; border: 2px solid #444444; }
+    
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-box { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-left: 4px solid #E43027; }
+    .stat-label { color: #AAAAAA; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .stat-value { font-size: 36px; font-weight: 800; color: #E43027; }
+    
+    .btn-game { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 18px 36px; border: none; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.3s; margin: 8px; box-shadow: 0 4px 12px rgba(228, 48, 39, 0.3); text-transform: uppercase; letter-spacing: 1px; }
+    .btn-game:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(228, 48, 39, 0.5); }
+    .btn-game.secondary { background: #444444; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .btn-game.secondary:hover { background: #555555; }
+    .btn-game.success { background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%); }
+    .btn-game.success:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4); }
+    
+    .back-btn { background: #444444; color: #FFFFFF; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 24px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; border: none; cursor: pointer; font-size: 14px; }
+    .back-btn:hover { background: #555555; transform: translateY(-2px); }
+    
+    /* TETRIS */
+    #tetrisCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    
+    /* PACMAN */
+    #pacmanCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    
+    /* SPACE INVADERS */
+    #spaceInvadersCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    
+    /* SNAKE */
+    #snakeCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    
+    /* PONG */
+    #pongCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    
+    /* AJEDREZ */
+    .chess-board { display: inline-block; border: 3px solid #E43027; margin: 20px 0; }
+    .chess-row { display: flex; }
+    .chess-square { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; cursor: pointer; }
+    .chess-square.white { background: #F0D9B5; }
+    .chess-square.black { background: #B58863; }
+    .chess-square.selected { box-shadow: inset 0 0 0 3px #FFD700; }
+</style>
+
+<div class="play-container">
+    <div class="play-header">
+        <div>
+            <h1>🎮 {{ juego.nombre }}</h1>
+        </div>
+        <div style="text-align: right;">
+            <div class="play-header-info">Estado: <span style="color: {% if juego.activo %}#4CAF50{% else %}#E43027{% endif %}">{% if juego.activo %}✓ ACTIVO{% else %}✗ INACTIVO{% endif %}</span></div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-label">Puntuación</div>
+            <div class="stat-value" id="score">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Nivel</div>
+            <div class="stat-value" id="level">1</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Estado</div>
+            <div class="stat-value" id="status" style="font-size: 20px;">LISTO</div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <!-- TETRIS GAME -->
+        {% if juego.nombre == 'Tetris' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">TETRIS</h2>
+            <canvas id="tetrisCanvas" width="200" height="400"></canvas>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa las FLECHAS ◀ ▶ ▼ para mover y ESPACIO o ▲ para rotar</p>
+        
+        <!-- PACMAN GAME -->
+        {% elseif juego.nombre == 'Pacman' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">PACMAN</h2>
+            <canvas id="pacmanCanvas" width="400" height="400"></canvas>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa las FLECHAS para moverte ◀ ▶ ▲ ▼ y come todos los puntos</p>
+        
+        <!-- SPACE INVADERS GAME -->
+        {% elseif juego.nombre == 'Space Invaders' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">SPACE INVADERS</h2>
+            <canvas id="spaceInvadersCanvas" width="400" height="500"></canvas>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa A/D o FLECHAS ◀ ▶ para moverte y ESPACIO para disparar</p>
+        
+        <!-- CHESS GAME -->
+        {% elseif juego.nombre == 'Ajedrez' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">AJEDREZ</h2>
+            <div class="chess-board" id="chessBoard"></div>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Gana por puntos: Rey=10, Reina=9, Torre=5, Alfil=3, Caballo=3, Peón=1</p>
+        
+        <!-- SNAKE GAME -->
+        {% elseif juego.nombre == 'Snake' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">SNAKE</h2>
+            <canvas id="snakeCanvas" width="400" height="400"></canvas>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p id="snakeInstructions" style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa FLECHAS ◀ ▶ ▲ ▼ o WASD. ¡No te choques!</p>
+        
+        <!-- PONG GAME -->
+        {% elseif juego.nombre == 'Pong' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">PONG</h2>
+            <canvas id="pongCanvas" width="400" height="500"></canvas>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p id="pongInstructions" style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa FLECHAS ◀ ▶ o A/D. ¡Rompe todos los bloques!</p>
+        {% endif %}
+    </div>
+
+    <a href="{{ path('app_juegos_index') }}" class="back-btn">← VOLVER AL CATÁLOGO</a>
+</div>
+
+<script>
+    const gameName = '{{ juego.nombre }}';
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const statusEl = document.getElementById('status');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let score = 0;
+    let level = 1;
+    let gameActive = false;
+
+    function updateScore(points) {
+        score += points;
+        scoreEl.textContent = score;
+    }
+
+    function updateLevel(newLevel) {
+        level = newLevel;
+        levelEl.textContent = level;
+    }
+
+    function setStatus(text) {
+        statusEl.textContent = text;
+    }
+
+    // ==================== TETRIS ====================
+    if (gameName === 'Tetris') {
+        const canvas = document.getElementById('tetrisCanvas');
+        const ctx = canvas.getContext('2d');
+        const blockSize = 20;
+        const cols = 10;
+        const rows = 20;
+        
+        let board = Array(rows).fill(null).map(() => Array(cols).fill(0));
+        let currentPiece = null;
+        let pieceX = 0;
+        let pieceY = 0;
+        let gameRunning = false;
+        let dropTimer = null;
+
+        const pieces = [
+            { shape: [[1,1,1,1]], color: '#00F0F0' },
+            { shape: [[1,1],[1,1]], color: '#F0F000' },
+            { shape: [[0,1,1],[1,1,0]], color: '#00F000' },
+            { shape: [[1,1,0],[0,1,1]], color: '#F00000' },
+            { shape: [[1,0,0],[1,1,1]], color: '#0000F0' },
+            { shape: [[0,0,1],[1,1,1]], color: '#F0A000' },
+            { shape: [[0,1,0],[1,1,1]], color: '#A000F0' }
+        ];
+
+        function getRandomPiece() {
+            return JSON.parse(JSON.stringify(pieces[Math.floor(Math.random() * pieces.length)]));
+        }
+
+        function drawBoard() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar grid
+            ctx.strokeStyle = '#222';
+            for (let i = 0; i <= cols; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * blockSize, 0);
+                ctx.lineTo(i * blockSize, rows * blockSize);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= rows; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * blockSize);
+                ctx.lineTo(cols * blockSize, i * blockSize);
+                ctx.stroke();
+            }
+
+            // Dibujar piezas en el tablero
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (board[y][x]) {
+                        ctx.fillStyle = board[y][x];
+                        ctx.fillRect(x * blockSize + 1, y * blockSize + 1, blockSize - 2, blockSize - 2);
+                    }
+                }
+            }
+        }
+
+        function drawPiece() {
+            if (!currentPiece) return;
+            ctx.fillStyle = currentPiece.color;
+            for (let y = 0; y < currentPiece.shape.length; y++) {
+                for (let x = 0; x < currentPiece.shape[y].length; x++) {
+                    if (currentPiece.shape[y][x]) {
+                        ctx.fillRect((pieceX + x) * blockSize + 1, (pieceY + y) * blockSize + 1, blockSize - 2, blockSize - 2);
+                    }
+                }
+            }
+        }
+
+        function canMove(piece, x, y) {
+            for (let py = 0; py < piece.shape.length; py++) {
+                for (let px = 0; px < piece.shape[py].length; px++) {
+                    if (piece.shape[py][px]) {
+                        const nx = x + px;
+                        const ny = y + py;
+                        if (nx < 0 || nx >= cols || ny >= rows) return false;
+                        if (ny >= 0 && board[ny][nx]) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function lockPiece() {
+            for (let y = 0; y < currentPiece.shape.length; y++) {
+                for (let x = 0; x < currentPiece.shape[y].length; x++) {
+                    if (currentPiece.shape[y][x]) {
+                        const ny = pieceY + y;
+                        if (ny >= 0) {
+                            board[ny][pieceX + x] = currentPiece.color;
+                        }
+                    }
+                }
+            }
+            clearLines();
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            for (let y = rows - 1; y >= 0; y--) {
+                if (board[y].every(cell => cell !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(cols).fill(0));
+                    linesCleared++;
+                }
+            }
+            if (linesCleared > 0) {
+                updateScore(linesCleared * 100);
+                updateLevel(Math.floor(score / 500) + 1);
+            }
+        }
+
+        function startTetris() {
+            if (gameRunning) return;
+            gameRunning = true;
+            score = 0;
+            level = 1;
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            setStatus('EN JUEGO');
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+            board = Array(rows).fill(null).map(() => Array(cols).fill(0));
+            currentPiece = getRandomPiece();
+            pieceX = Math.floor(cols / 2) - 1;
+            pieceY = 0;
+            gameLoopTetris();
+        }
+
+        function gameLoopTetris() {
+            drawBoard();
+            drawPiece();
+
+            if (gameRunning) {
+                if (!canMove(currentPiece, pieceX, pieceY + 1)) {
+                    lockPiece();
+                    currentPiece = getRandomPiece();
+                    pieceX = Math.floor(cols / 2) - 1;
+                    pieceY = 0;
+                    if (!canMove(currentPiece, pieceX, pieceY)) {
+                        gameRunning = false;
+                        setStatus('GAME OVER');
+                        startBtn.disabled = false;
+                    }
+                } else {
+                    pieceY++;
+                }
+                const speed = Math.max(100, 1000 - level * 50);
+                dropTimer = setTimeout(gameLoopTetris, speed);
+            }
+        }
+
+        function resetTetris() {
+            gameRunning = false;
+            if (dropTimer) clearTimeout(dropTimer);
+            score = 0;
+            level = 1;
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            setStatus('LISTO');
+            startBtn.disabled = false;
+            resetBtn.disabled = false;
+            board = Array(rows).fill(null).map(() => Array(cols).fill(0));
+            currentPiece = null;
+            drawBoard();
+        }
+
+        function rotatePiece(piece) {
+            const rotated = [];
+            for (let i = 0; i < piece.shape[0].length; i++) {
+                rotated[i] = [];
+                for (let j = piece.shape.length - 1; j >= 0; j--) {
+                    rotated[i][piece.shape.length - 1 - j] = piece.shape[j][i];
+                }
+            }
+            return { shape: rotated, color: piece.color };
+        }
+
+        const tetrisKeyHandler = (e) => {
+            if (!gameRunning) return;
+            
+            if (e.key === 'ArrowLeft') {
+                if (canMove(currentPiece, pieceX - 1, pieceY)) pieceX--;
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowRight') {
+                if (canMove(currentPiece, pieceX + 1, pieceY)) pieceX++;
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowDown') {
+                if (canMove(currentPiece, pieceX, pieceY + 1)) pieceY++;
+                e.preventDefault();
+            }
+            if (e.key === ' ' || e.key === 'ArrowUp') {
+                const rotated = rotatePiece(currentPiece);
+                if (canMove(rotated, pieceX, pieceY)) {
+                    currentPiece = rotated;
+                }
+                e.preventDefault();
+            }
+        };
+
+        startBtn.addEventListener('click', startTetris);
+        resetBtn.addEventListener('click', resetTetris);
+        document.addEventListener('keydown', tetrisKeyHandler);
+        drawBoard();
+    }
+
+    // ==================== PACMAN ====================
+    else if (gameName === 'Pacman') {
+        const canvas = document.getElementById('pacmanCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20;
+        const pacman = { x: 2, y: 2, direction: 0 };
+        let gameRunning = false;
+        let gameLoopId = null;
+        let pills = [];
+        let powerPills = [];
+        let ghostsEaten = 0;
+
+        const ghosts = [
+            { x: 8, y: 8, color: '#FF0000', vx: 1, vy: 0 },
+            { x: 9, y: 8, color: '#FFB6C1', vx: -1, vy: 0 },
+            { x: 8, y: 9, color: '#00FFFF', vx: 0, vy: 1 },
+            { x: 9, y: 9, color: '#FFB847', vx: 0, vy: -1 }
+        ];
+
+        function initPills() {
+            pills = [];
+            for (let y = 0; y < 20; y++) {
+                for (let x = 0; x < 20; x++) {
+                    if (Math.random() > 0.1) pills.push({ x, y });
+                }
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar píldoras
+            ctx.fillStyle = '#FFE4B5';
+            pills.forEach(p => {
+                ctx.fillRect(p.x * gridSize + 8, p.y * gridSize + 8, 4, 4);
+            });
+
+            // Dibujar Pacman
+            ctx.fillStyle = '#FFFF00';
+            ctx.beginPath();
+            ctx.arc(pacman.x * gridSize + gridSize/2, pacman.y * gridSize + gridSize/2, 8, 0.2, Math.PI * 1.8);
+            ctx.lineTo(pacman.x * gridSize + gridSize/2, pacman.y * gridSize + gridSize/2);
+            ctx.fill();
+
+            // Dibujar fantasmas
+            ghosts.forEach(g => {
+                ctx.fillStyle = g.color;
+                ctx.fillRect(g.x * gridSize + 2, g.y * gridSize + 2, gridSize - 4, gridSize - 4);
+            });
+        }
+
+        function updatePacman() {
+            const dirX = pacman.lastDirX || 0;
+            const dirY = pacman.lastDirY || 0;
+            
+            if (pacman.x + dirX >= 0 && pacman.x + dirX < 20) pacman.x += dirX;
+            if (pacman.y + dirY >= 0 && pacman.y + dirY < 20) pacman.y += dirY;
+
+            // Detectar colisión con fantasmas - Si pacman toca un cuadradito de color, muere
+            for (let i = 0; i < ghosts.length; i++) {
+                const g = ghosts[i];
+                const dx = Math.abs(pacman.x - g.x);
+                const dy = Math.abs(pacman.y - g.y);
+                
+                // Si está en la misma celda o muy cerca
+                if (dx < 0.8 && dy < 0.8) {
+                    gameRunning = false;
+                    if (gameLoopId) clearTimeout(gameLoopId);
+                    setStatus('¡MUERTO!');
+                    startBtn.disabled = false;
+                    
+                    // Dibujar el estado final
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#FF0000';
+                    ctx.font = '30px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('¡HAS MUERTO!', canvas.width/2, canvas.height/2);
+                    ctx.fillText('Puntos: ' + score, canvas.width/2, canvas.height/2 + 40);
+                    
+                    setTimeout(() => {
+                        if (confirm('¡Has tocado un fantasma!\nPuntuación: ' + score + '\n\n¿Jugar de nuevo?')) {
+                            startPacman();
+                        }
+                    }, 100);
+                    return; // Salir de la función
+                }
+            }
+
+            // Comer píldoras
+            pills = pills.filter(p => {
+                if (Math.abs(p.x - pacman.x) < 0.6 && Math.abs(p.y - pacman.y) < 0.6) {
+                    updateScore(10);
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        function updateGhosts() {
+            ghosts.forEach(g => {
+                if (Math.random() > 0.8) {
+                    const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                    const dir = directions[Math.floor(Math.random() * 4)];
+                    g.vx = dir[0];
+                    g.vy = dir[1];
+                }
+                g.x += g.vx;
+                g.y += g.vy;
+                if (g.x < 0 || g.x >= 20) g.vx *= -1;
+                if (g.y < 0 || g.y >= 20) g.vy *= -1;
+            });
+        }
+
+        function gamePacmanLoop() {
+            updatePacman();
+            updateGhosts();
+            draw();
+
+            if (gameRunning) {
+                gameLoopId = setTimeout(gamePacmanLoop, 200);
+            }
+        }
+
+        function startPacman() {
+            if (gameRunning) return;
+            gameRunning = true;
+            score = 0;
+            scoreEl.textContent = score;
+            setStatus('EN JUEGO');
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+            initPills();
+            gamePacmanLoop();
+        }
+
+        function resetPacman() {
+            gameRunning = false;
+            if (gameLoopId) clearTimeout(gameLoopId);
+            pacman.x = 2;
+            pacman.y = 2;
+            score = 0;
+            scoreEl.textContent = score;
+            setStatus('LISTO');
+            startBtn.disabled = false;
+            resetBtn.disabled = false;
+            initPills();
+            draw();
+        }
+
+        const pacmanKeyHandler = (e) => {
+            if (!gameRunning) return;
+            if (e.key === 'ArrowLeft') { 
+                pacman.lastDirX = -1; 
+                pacman.lastDirY = 0; 
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowRight') { 
+                pacman.lastDirX = 1; 
+                pacman.lastDirY = 0; 
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowUp') { 
+                pacman.lastDirX = 0; 
+                pacman.lastDirY = -1; 
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowDown') { 
+                pacman.lastDirX = 0; 
+                pacman.lastDirY = 1; 
+                e.preventDefault();
+            }
+        };
+
+        startBtn.addEventListener('click', startPacman);
+        resetBtn.addEventListener('click', resetPacman);
+        document.addEventListener('keydown', pacmanKeyHandler);
+        initPills();
+        draw();
+    }
+
+    // ==================== SPACE INVADERS ====================
+    else if (gameName === 'Space Invaders') {
+        const canvas = document.getElementById('spaceInvadersCanvas');
+        const ctx = canvas.getContext('2d');
+        const player = { x: 180, y: 450, width: 40, height: 40, speed: 5 };
+        let gameRunning = false;
+        let gameLoopId = null;
+        let enemies = [];
+        let bullets = [];
+        let enemyShots = [];
+        let keys = {};
+        let waveCount = 1;
+
+        function drawPlayer() {
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(player.x - player.width/2, player.y, player.width, player.height);
+            ctx.fillRect(player.x - 5, player.y - 10, 10, 10);
+        }
+
+        function drawEnemies() {
+            ctx.fillStyle = '#FF0000';
+            enemies.forEach(e => {
+                ctx.fillRect(e.x, e.y, 30, 30);
+            });
+        }
+
+        function drawBullets() {
+            ctx.fillStyle = '#FFFF00';
+            bullets.forEach(b => {
+                ctx.fillRect(b.x - 2, b.y, 4, 10);
+            });
+        }
+
+        function spawnEnemies() {
+            enemies = [];
+            const count = 5 + waveCount;
+            for (let i = 0; i < count; i++) {
+                enemies.push({
+                    x: (i % 5) * 70 + 20,
+                    y: Math.floor(i / 5) * 50 + 20,
+                    vx: 1 + waveCount * 0.5,
+                    vy: 0
+                });
+            }
+        }
+
+        function gameLoopSpaceInvaders() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Mover jugador
+            if (keys['a'] || keys['A']) player.x -= player.speed;
+            if (keys['d'] || keys['D']) player.x += player.speed;
+            player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x));
+
+            // Actualizar balas del jugador
+            bullets.forEach((b, i) => {
+                b.y -= 7;
+                if (b.y < 0) bullets.splice(i, 1);
+            });
+
+            // Mover enemigos
+            let moveDown = false;
+            enemies.forEach(e => {
+                e.x += e.vx;
+                if (e.x < 0 || e.x + 30 > canvas.width) moveDown = true;
+            });
+
+            if (moveDown) {
+                enemies.forEach(e => {
+                    e.vx *= -1;
+                    e.y += 30;
+                });
+            }
+
+            // Detectar colisiones balas-enemigos
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    if (bullets[i].x > enemies[j].x && bullets[i].x < enemies[j].x + 30 &&
+                        bullets[i].y > enemies[j].y && bullets[i].y < enemies[j].y + 30) {
+                        enemies.splice(j, 1);
+                        bullets.splice(i, 1);
+                        updateScore(50);
+                        break;
+                    }
+                }
+            }
+
+            // Siguiente ola
+            if (enemies.length === 0) {
+                waveCount++;
+                updateLevel(waveCount);
+                spawnEnemies();
+            }
+
+            // Game Over
+            enemies.forEach(e => {
+                if (e.y + 30 > player.y) {
+                    gameRunning = false;
+                    setStatus('GAME OVER');
+                }
+            });
+
+            drawPlayer();
+            drawEnemies();
+            drawBullets();
+
+            if (gameRunning) {
+                gameLoopId = setTimeout(gameLoopSpaceInvaders, 1000 / 60);
+            }
+        }
+
+        function startSpaceInvaders() {
+            if (gameRunning) return;
+            gameRunning = true;
+            score = 0;
+            level = 1;
+            waveCount = 1;
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            setStatus('EN JUEGO');
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+            spawnEnemies();
+            gameLoopSpaceInvaders();
+        }
+
+        function resetSpaceInvaders() {
+            gameRunning = false;
+            if (gameLoopId) clearTimeout(gameLoopId);
+            player.x = 180;
+            player.y = 450;
+            score = 0;
+            level = 1;
+            waveCount = 1;
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            setStatus('LISTO');
+            startBtn.disabled = false;
+            resetBtn.disabled = false;
+            bullets = [];
+            enemies = [];
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        const spaceKeyHandler = (e) => {
+            if (!gameRunning) return;
+            
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys['a'] = true;
+                keys['A'] = true;
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys['d'] = true;
+                keys['D'] = true;
+                e.preventDefault();
+            }
+            if (e.key === ' ') {
+                bullets.push({ x: player.x, y: player.y - 10 });
+                e.preventDefault();
+            }
+        };
+
+        const spaceKeyUpHandler = (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys['a'] = false;
+                keys['A'] = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys['d'] = false;
+                keys['D'] = false;
+            }
+        };
+
+        startBtn.addEventListener('click', startSpaceInvaders);
+        resetBtn.addEventListener('click', resetSpaceInvaders);
+        document.addEventListener('keydown', spaceKeyHandler);
+        document.addEventListener('keyup', spaceKeyUpHandler);
+    }
+
+    // ==================== CHESS ====================
+    else if (gameName === 'Ajedrez') {
+        const board = document.getElementById('chessBoard');
+        let selectedPiece = null;
+        let validMoves = [];
+        let piecesRemaining = 32;
+        let whiteTaken = 0;
+        let blackTaken = 0;
+
+        const initialBoard = [
+            ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+            ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
+            ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
+        ];
+
+        let boardState = JSON.parse(JSON.stringify(initialBoard));
+
+        function createBoard() {
+            board.innerHTML = '';
+            for (let row = 0; row < 8; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'chess-row';
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = 'chess-square ' + ((row + col) % 2 === 0 ? 'white' : 'black');
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    const piece = boardState[row][col];
+                    square.textContent = piece;
+
+                    square.addEventListener('click', () => {
+                        if (!gameActive) return;
+                        
+                        if (piece && (whiteTaken < 8 || blackTaken < 8)) {
+                            if ((piece === piece.toUpperCase() && piece !== piece.toLowerCase()) ||
+                                (piece === piece.toLowerCase() && piece !== piece.toUpperCase())) {
+                                const isWhitePiece = piece === piece.toUpperCase();
+                                if (isWhitePiece) whiteTaken++;
+                                else blackTaken++;
+                                boardState[row][col] = '';
+                                square.textContent = '';
+                                updateScore(15);
+                                updateLevel(Math.floor(score / 100) + 1);
+                            }
+                        }
+                    });
+                    rowDiv.appendChild(square);
+                }
+                board.appendChild(rowDiv);
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            score = 0;
+            level = 1;
+            whiteTaken = 0;
+            blackTaken = 0;
+            piecesRemaining = 32;
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            setStatus('EN JUEGO');
+            gameActive = true;
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+            boardState = JSON.parse(JSON.stringify(initialBoard));
+            createBoard();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            score = 0;
+            level = 1;
+            whiteTaken = 0;
+            blackTaken = 0;
+            piecesRemaining = 32;
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            setStatus('LISTO');
+            gameActive = false;
+            startBtn.disabled = false;
+            resetBtn.disabled = false;
+            boardState = JSON.parse(JSON.stringify(initialBoard));
+            createBoard();
+        });
+
+        createBoard();
+    }
+
+    // ================== SNAKE ==================
+    if (gameName === 'Snake') {
+        const canvas = document.getElementById('snakeCanvas');
+            let gameRunning = false;
+        const ctx = canvas.getContext('2d');
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 15, y: 15};
+        let direction = {x: 1, y: 0};
+        let nextDirection = {x: 1, y: 0};
+        let snakeGameLoopId = null;
+        const gridSize = 20;
+        const cellSize = canvas.width / gridSize;
+
+        function drawSnakeGame() {
+            ctx.fillStyle = '#1C1C1C';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar serpiente
+            snake.forEach((segment, index) => {
+                ctx.fillStyle = index === 0 ? '#E43027' : '#FF6B6B';
+                ctx.fillRect(segment.x * cellSize, segment.y * cellSize, cellSize - 2, cellSize - 2);
+            });
+
+            // Dibujar comida
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(food.x * cellSize, food.y * cellSize, cellSize - 2, cellSize - 2);
+        }
+
+        function updateSnake() {
+            direction = nextDirection;
+            const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+
+            // Colisión con paredes
+            if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
+                gameRunning = false;
+                setStatus('GAME OVER');
+                return;
+            }
+
+            // Colisión consigo misma
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameRunning = false;
+                setStatus('GAME OVER');
+                return;
+            }
+
+            snake.unshift(head);
+
+            // Comer comida
+            if (head.x === food.x && head.y === food.y) {
+                updateScore(10);
+                if (score % 50 === 0) updateLevel(Math.floor(score / 50) + 1);
+                do {
+                    food = {
+                        x: Math.floor(Math.random() * gridSize),
+                        y: Math.floor(Math.random() * gridSize)
+                    };
+                } while (snake.some(segment => segment.x === food.x && segment.y === food.y));
+            } else {
+                snake.pop();
+            }
+
+            drawSnakeGame();
+
+            if (gameRunning) {
+                snakeGameLoopId = setTimeout(updateSnake, Math.max(100, 200 - level * 10));
+            }
+        }
+
+        const snakeKeyHandler = (e) => {
+            const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+            if (isArrow) e.preventDefault();
+            if (!gameRunning) return;
+            if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && direction.y === 0) {
+                nextDirection = {x: 0, y: -1};
+            }
+            if ((e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') && direction.y === 0) {
+                nextDirection = {x: 0, y: 1};
+            }
+            if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && direction.x === 0) {
+                nextDirection = {x: -1, y: 0};
+            }
+            if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && direction.x === 0) {
+                nextDirection = {x: 1, y: 0};
+            }
+        };
+
+        document.addEventListener('keydown', snakeKeyHandler);
+
+        function startSnake() {
+            if (gameRunning) return;
+            gameRunning = true;
+            score = 0;
+            level = 1;
+            snake = [{x: 10, y: 10}];
+            direction = {x: 1, y: 0};
+            nextDirection = {x: 1, y: 0};
+            food = {x: 15, y: 15};
+            updateScore(0);
+            updateLevel(1);
+            setStatus('EN JUEGO');
+            updateSnake();
+        }
+
+        function resetSnake() {
+            gameRunning = false;
+            if (snakeGameLoopId) clearTimeout(snakeGameLoopId);
+            snake = [{x: 10, y: 10}];
+            direction = {x: 1, y: 0};
+            nextDirection = {x: 1, y: 0};
+            food = {x: 15, y: 15};
+            score = 0;
+            level = 1;
+            updateScore(0);
+            updateLevel(1);
+            setStatus('LISTO');
+            drawSnakeGame();
+        }
+
+        startBtn.addEventListener('click', startSnake);
+        resetBtn.addEventListener('click', resetSnake);
+        drawSnakeGame();
+    }
+
+    // ================== PONG ==================
+    if (gameName === 'Pong') {
+        const canvas = document.getElementById('pongCanvas');
+            let gameRunning = false;
+        const ctx = canvas.getContext('2d');
+        const paddle = {x: canvas.width / 2 - 50, y: canvas.height - 20, width: 100, height: 10, speed: 8};
+        const ball = {x: canvas.width / 2, y: canvas.height / 2, vx: 4, vy: -4, radius: 8};
+        const bricks = [];
+        const brickRows = 5;
+        const brickCols = 8;
+        const brickWidth = canvas.width / brickCols - 10;
+        const brickHeight = 20;
+        let pongGameLoopId = null;
+        const pongKeys = {};
+
+        // Crear bloques
+        for (let row = 0; row < brickRows; row++) {
+            for (let col = 0; col < brickCols; col++) {
+                bricks.push({
+                    x: col * (brickWidth + 10) + 5,
+                    y: row * (brickHeight + 5) + 30,
+                    width: brickWidth,
+                    height: brickHeight,
+                    active: true
+                });
+            }
+        }
+
+        function drawPong() {
+            ctx.fillStyle = '#1C1C1C';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Paleta
+            ctx.fillStyle = '#E43027';
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+
+            // Pelota
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bloques
+            bricks.forEach(brick => {
+                if (brick.active) {
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                }
+            });
+        }
+
+        function updatePong() {
+            // Mover paleta
+            if ((pongKeys['ArrowLeft'] || pongKeys['a'] || pongKeys['A']) && paddle.x > 0) {
+                paddle.x -= paddle.speed;
+            }
+            if ((pongKeys['ArrowRight'] || pongKeys['d'] || pongKeys['D']) && paddle.x + paddle.width < canvas.width) {
+                paddle.x += paddle.speed;
+            }
+
+            // Mover pelota
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // Colisión paredes laterales
+            if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+                ball.vx *= -1;
+            }
+
+            // Colisión techo
+            if (ball.y - ball.radius < 0) {
+                ball.vy *= -1;
+            }
+
+            // Colisión con paleta
+            if (ball.y + ball.radius > paddle.y &&
+                ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                ball.vy *= -1;
+                ball.y = paddle.y - ball.radius;
+            }
+
+            // Colisión con bloques
+            bricks.forEach(brick => {
+                if (brick.active &&
+                    ball.x > brick.x && ball.x < brick.x + brick.width &&
+                    ball.y - ball.radius < brick.y + brick.height &&
+                    ball.y + ball.radius > brick.y) {
+                    brick.active = false;
+                    ball.vy *= -1;
+                    updateScore(10);
+                }
+            });
+
+            // Game Over
+            if (ball.y - ball.radius > canvas.height) {
+                gameRunning = false;
+                setStatus('GAME OVER');
+                return;
+            }
+
+            // Victoria
+            if (bricks.every(b => !b.active)) {
+                gameRunning = false;
+                setStatus('¡VICTORIA!');
+                return;
+            }
+
+            drawPong();
+
+            if (gameRunning) {
+                pongGameLoopId = requestAnimationFrame(updatePong);
+            }
+        }
+
+        const pongKeyDown = (e) => {
+            if (e.key.startsWith('Arrow')) e.preventDefault();
+            if (!gameRunning) return;
+            pongKeys[e.key] = true;
+        };
+
+        const pongKeyUp = (e) => {
+            pongKeys[e.key] = false;
+        };
+
+        document.addEventListener('keydown', pongKeyDown);
+        document.addEventListener('keyup', pongKeyUp);
+
+        function startPong() {
+            if (gameRunning) return;
+            gameRunning = true;
+            score = 0;
+            level = 1;
+            paddle.x = canvas.width / 2 - 50;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.vx = 4;
+            ball.vy = -4;
+            bricks.forEach(b => b.active = true);
+            updateScore(0);
+            updateLevel(1);
+            setStatus('EN JUEGO');
+            updatePong();
+        }
+
+        function resetPong() {
+            gameRunning = false;
+            if (pongGameLoopId) cancelAnimationFrame(pongGameLoopId);
+            paddle.x = canvas.width / 2 - 50;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.vx = 4;
+            ball.vy = -4;
+            bricks.forEach(b => b.active = true);
+            score = 0;
+            level = 1;
+            updateScore(0);
+            updateLevel(1);
+            setStatus('LISTO');
+            drawPong();
+        }
+
+        startBtn.addEventListener('click', startPong);
+        resetBtn.addEventListener('click', resetPong);
+        drawPong();
+    }
+</script>
+{% endblock %}

@@ -2,195 +2,53 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}GameCenter{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎮</text></svg>">
-        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-        {% block stylesheets %}
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-            <style>
-                body {
-                    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-                    color: #e0e0e0;
-                    font-family: 'Press Start 2P', cursive;
-                    min-height: 100vh;
-                    padding-top: 20px;
-                    padding-bottom: 20px;
-                }
-                .container {
-                    padding-left: 2rem;
-                    padding-right: 2rem;
-                }
-                .card {
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 2px solid #00d4ff;
-                    border-radius: 15px;
-                    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-                    margin-bottom: 2rem;
-                    padding: 1.5rem;
-                }
-                .card-header {
-                    background: rgba(0, 212, 255, 0.2);
-                    border-bottom: 2px solid #00d4ff;
-                    color: #00d4ff;
-                }
-                .btn-primary {
-                    background: linear-gradient(45deg, #ff6b6b, #ffa500);
-                    border: none;
-                    color: white;
-                    font-weight: bold;
-                    transition: all 0.3s ease;
-                }
-                .btn-primary:hover {
-                    background: linear-gradient(45deg, #ffa500, #ff6b6b);
-                    box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
-                    transform: scale(1.05);
-                }
-                .btn-secondary {
-                    background: linear-gradient(45deg, #4ecdc4, #44a08d);
-                    border: none;
-                    color: white;
-                    font-weight: bold;
-                    transition: all 0.3s ease;
-                }
-                .btn-secondary:hover {
-                    background: linear-gradient(45deg, #44a08d, #4ecdc4);
-                    box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
-                    transform: scale(1.05);
-                }
-                .btn-success {
-                    background: linear-gradient(45deg, #00d4ff, #0099cc);
-                    border: none;
-                    color: white;
-                    font-weight: bold;
-                    transition: all 0.3s ease;
-                }
-                .btn-success:hover {
-                    background: linear-gradient(45deg, #0099cc, #00d4ff);
-                    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
-                    transform: scale(1.05);
-                }
-                .display-4 {
-                    color: #00d4ff;
-                    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-                }
-                .lead {
-                    color: #e0e0e0;
-                }
-                .form-control {
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 2px solid #00d4ff;
-                    color: #000000;
-                }
-                .form-control:focus {
-                    background: rgba(255, 255, 255, 0.2);
-                    border-color: #ff6b6b;
-                    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-                    color: #000000;
-                }
-                .form-label {
-                    color: #00d4ff; /* Un azul cian que combina con el tema */
-                    font-weight: bold;
-                    margin-bottom: 0.5rem;
-                    font-size: 0.9rem; /* Un poco más pequeño para que no sea tan grande con la fuente Press Start 2P */
-                }
-                .card .card-text, .card p, .card li {
-                    color: #ffffff;
-                }
-                .alert {
-                    border-radius: 10px;
-                    color: #000000;
-                }
-                .breadcrumb {
-                    background: transparent;
-                    border-radius: 10px;
-                }
-                .breadcrumb-item a {
-                    color: #4ecdc4;
-                }
-                .breadcrumb-item.active {
-                    color: #00d4ff;
-                }
-                .card-title {
-                    color: #00d4ff;
-                }
-                .text-muted {
-                    color: #cccccc !important;
-                }
-                a {
-                    color: #4ecdc4;
-                }
-                a:hover {
-                    color: #00d4ff;
-                }
-            </style>
-        {% endblock %}
-
-        {% block javascripts %}
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-        {% endblock %}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Juegos{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #1C1C1C; color: #FFFFFF; }
+            html, body { height: 100%; }
+            
+            nav { background: linear-gradient(90deg, #1C1C1C 0%, #252525 50%, #1C1C1C 100%); border-bottom: 4px solid #E43027; padding: 16px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+            nav .brand { font-size: 26px; font-weight: 800; letter-spacing: 1px; color: #E43027; text-transform: uppercase; transition: all 0.3s; }
+            nav .brand:hover { color: #FFFFFF; text-shadow: 0 0 10px #E43027; }
+            nav > div:last-child { display: flex; gap: 8px; }
+            nav a { color: #FFFFFF; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; opacity: 0.9; transition: all 0.3s; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+            nav a:hover { background: #E43027; color: #FFFFFF; opacity: 1; transform: translateY(-2px); }
+            
+            .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+            .page-title { font-size: 36px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+            .page-subtitle { color: #AAAAAA; margin-bottom: 24px; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+            
+            /* SCROLLBAR */
+            ::-webkit-scrollbar { width: 10px; }
+            ::-webkit-scrollbar-track { background: #2C2C2C; }
+            ::-webkit-scrollbar-thumb { background: #E43027; border-radius: 5px; }
+            ::-webkit-scrollbar-thumb:hover { background: #FF4A3D; }
+        </style>
+        {% block stylesheets %}{% endblock %}
+        {% block javascripts %}{% endblock %}
     </head>
     <body>
-        <nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(0, 0, 0, 0.8); border-bottom: 2px solid #00d4ff; font-size: 0.9rem; padding: 1rem 2rem;">
-            <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item me-4">
-                            <a class="nav-link fw-semibold" href="{{ path('app_home') }}">🏠 Inicio</a>
-                        </li>
-                        <li class="nav-item me-4">
-                            <a class="nav-link fw-semibold" href="{{ path('app_juegos_index') }}">🎯 Juegos</a>
-                        </li>
-                        {% if app.user and is_granted('ROLE_ADMIN') %}
-                            <li class="nav-item">
-                                <span class="navbar-text me-3">|</span>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle fw-semibold" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    ⚙️ Administración
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ path('app_user_index') }}">👥 Usuarios</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ path('app_aplicaciones_index') }}">📱 Aplicaciones</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                    </ul>
-                    <ul class="navbar-nav ms-auto">
-                        {% if not app.user %}
-                            <li class="nav-item">
-                                <span class="navbar-text me-3">|</span>
-                            </li>
-                            <li class="nav-item me-4">
-                                <a class="nav-link fw-semibold" href="{{ path('app_login') }}">🔑 Iniciar Sesión</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ path('app_user_new') }}">✨ Registrarse</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <span class="navbar-text me-3">|</span>
-                            </li>
-                            <li class="nav-item me-3">
-                                <span class="navbar-text fw-semibold">Hola, {{ app.user.nombre|default(app.user.userIdentifier) }}!</span>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link fw-semibold" href="{{ logout_path() }}">🚪 Cerrar Sesión</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
+        <nav>
+            <div class="brand">⚡ JUEGOS</div>
+            <div>
+                <a href="{{ path('app_home') }}">Inicio</a>
+                <a href="{{ path('app_juegos_index') }}">Catálogo</a>
+                <a href="{{ path('app_api') }}">API</a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('admin_dashboard') }}" style="background: #FFB600; color: #000; font-weight: 700;">⚙️ Admin</a>
+                {% endif %}
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <a href="{{ path('app_logout') }}" style="background: #E74C3C; margin-left: auto;">🚪 Cerrar sesión</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" style="background: #28a745; margin-left: auto;">🔓 Iniciar sesión</a>
+                {% endif %}
             </div>
         </nav>
-        {% block body %}{% endblock %}
-        <footer class="text-center mt-5 py-4" style="background: rgba(0, 0, 0, 0.8); border-top: 2px solid #00d4ff; color: #e0e0e0;">
-            <div class="container">
-                <p>&copy; 2026 Trabajo Juegos. Todos los derechos reservados. 🎮</p>
-            </div>
-        </footer>
+        <div class="container">
+            {% block body %}{% endblock %}
+        </div>
     </body>
 </html>

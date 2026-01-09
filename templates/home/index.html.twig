@@ -1,291 +1,57 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inicio - GameCenter{% endblock %}
+{% block title %}Inicio - Juegos{% endblock %}
 
 {% block body %}
-<nav class="top-nav">
-    <a href="#inicio">Inicio</a>
-    <a href="/dashboard">Juegos</a>
-</nav>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+    .hero { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 80px 40px; border-radius: 12px; text-align: center; margin-bottom: 60px; box-shadow: 0 12px 32px rgba(228, 48, 39, 0.3); position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -50%; right: -50%; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+    .hero h1 { font-size: 54px; margin-bottom: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); position: relative; z-index: 1; }
+    .hero p { font-size: 18px; opacity: 0.95; margin-bottom: 32px; text-transform: uppercase; letter-spacing: 0.5px; position: relative; z-index: 1; }
+    .btn-hero { background: white; color: #E43027; padding: 16px 36px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 16px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+    .btn-hero:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+    .btn-hero:active { transform: translateY(-1px); }
+    
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 60px; }
+    .card { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 12px; padding: 32px 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid #444444; transition: all 0.3s; }
+    .card:hover { transform: translateY(-8px); border-color: #E43027; box-shadow: 0 12px 32px rgba(228, 48, 39, 0.2); }
+    .card h2 { font-size: 24px; margin-bottom: 12px; color: #FFFFFF; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card p { color: #AAAAAA; line-height: 1.6; }
 
-    body {
-        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-        background: #0a0e27;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        color: #fff;
-    }
-
-    .top-nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        padding: 16px 20px;
-        background: linear-gradient(90deg, #1a1f3a 0%, #16213e 100%);
-        border-bottom: 2px solid #00d4ff;
-        z-index: 10;
-        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
-        height: 70px;
-        align-items: center;
-    }
-
-    .top-nav a {
-        color: #fff;
-        font-weight: 700;
-        text-decoration: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-size: 14px;
-    }
-
-    .top-nav a:hover {
-        background: #00d4ff;
-        color: #0a0e27;
-        border-color: #00d4ff;
-        transform: translateY(-2px);
-    }
-
-    .container-main {
-        background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
-        border-radius: 20px;
-        border: 2px solid #00d4ff;
-        box-shadow: 0 20px 60px rgba(0, 212, 255, 0.2);
-        overflow: hidden;
-        max-width: 700px;
-        width: 100%;
-        animation: fadeIn 0.6s ease-out;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .hero {
-        background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
-        color: #0a0e27;
-        padding: 60px 30px;
-        text-align: center;
-        scroll-margin-top: 90px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    .hero h1 {
-        font-size: 52px;
-        margin-bottom: 15px;
-        font-weight: 900;
-        position: relative;
-        z-index: 1;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .hero p {
-        font-size: 18px;
-        opacity: 0.95;
-        margin-bottom: 30px;
-        position: relative;
-        z-index: 1;
-        font-weight: 600;
-    }
-
-    .btn {
-        padding: 15px 30px;
-        font-size: 16px;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-block;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #ff1744 0%, #d32f2f 100%);
-        color: white;
-        box-shadow: 0 4px 15px rgba(255, 23, 68, 0.3);
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #ff5252 0%, #ff1744 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 25px rgba(255, 23, 68, 0.5);
-    }
-
-    body {
-        margin-top: 70px;
-    }
-
-    .form-container {
-        padding: 40px 30px;
-        background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
-        scroll-margin-top: 90px;
-    }
-
-    .form-container h2 {
-        color: #00d4ff;
-        font-size: 24px;
-        margin-bottom: 20px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: #00ffff;
-        text-transform: uppercase;
-        font-size: 12px;
-        letter-spacing: 0.5px;
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 12px 15px;
-        border: 2px solid #00d4ff;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.3s;
-        background: rgba(0, 212, 255, 0.05);
-        color: #fff;
-    }
-
-    .form-group input:focus {
-        outline: none;
-        border-color: #00ffff;
-        box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-        background: rgba(0, 212, 255, 0.1);
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 30px;
-    }
-
-    .form-actions button {
-        flex: 1;
-    }
-
-    .error {
-        color: #ff5252;
-        font-size: 14px;
-        margin-top: 5px;
-        padding: 10px;
-        background: rgba(255, 82, 82, 0.1);
-        border: 1px solid #ff5252;
-        border-radius: 8px;
-        margin-bottom: 10px;
-    }
-
-    .success {
-        color: #00ff88;
-        font-size: 14px;
-        margin-top: 5px;
-    }
+    .admin-section { background: linear-gradient(135deg, #FFB600 0%, #FF9500 100%); padding: 40px; border-radius: 12px; margin-top: 60px; text-align: center; box-shadow: 0 8px 24px rgba(255, 182, 0, 0.3); }
+    .admin-section h2 { color: #000; font-size: 28px; margin-bottom: 12px; }
+    .admin-section p { color: rgba(0,0,0,0.8); margin-bottom: 20px; }
+    .btn-admin { background: #000; color: #FFB600; padding: 14px 32px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 16px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+    .btn-admin:hover { background: #222; transform: translateY(-2px); }
 </style>
 
-    <div class="container-main">
-        <div class="hero" id="inicio">
-            <h1>🎮 GameCenter</h1>
-        </div>
+<div class="hero">
+    <h1>🎮 BIENVENIDO A JUEGOS</h1>
+    <p>Descubre y juega a nuestro catálogo de juegos interactivos</p>
+    <a href="{{ path('app_juegos_index') }}"><button class="btn-hero">IR AL CATÁLOGO →</button></a>
+</div>
 
-        <div class="form-container" id="loginForm">
-            <h2>Iniciar Sesión</h2>
-            <form onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Contraseña</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                <div id="loginError"></div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                </div>
-            </form>
-        </div>
+<h2 class="page-title">¿QUÉ PUEDO HACER?</h2>
+<div class="cards">
+    <div class="card">
+        <h2>📚 CATÁLOGO</h2>
+        <p>Explora nuestro catálogo completo de juegos y descubre nuevas experiencias de entretenimiento.</p>
     </div>
+    <div class="card">
+        <h2>🎮 JUEGA</h2>
+        <p>Accede a cada juego con un solo clic y comienza a jugar. Tus puntuaciones se guardan automáticamente.</p>
+    </div>
+    <div class="card">
+        <h2>📊 API</h2>
+        <p>Integra nuestros juegos en tu aplicación. Consulta nuestra documentación de API.</p>
+    </div>
+</div>
 
-<script>
-    const existingToken = localStorage.getItem('token');
-    if (existingToken) {
-        window.location.href = '/dashboard';
-    }
-
-    async function handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                document.getElementById('loginError').innerHTML = '<div class="error">' + (data.error || 'Credenciales inválidas') + '</div>';
-                return;
-            }
-
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('usuario', JSON.stringify(data));
-            window.location.href = '/dashboard';
-        } catch (error) {
-            document.getElementById('loginError').innerHTML = '<div class="error">Error de conexión</div>';
-        }
-    }
-</script>
+{% if is_granted('ROLE_ADMIN') %}
+<div class="admin-section">
+    <h2>⚙️ PANEL DE ADMINISTRACIÓN</h2>
+    <p>Gestiona usuarios, juegos, tokens y puntuaciones desde tu panel exclusivo de administrador</p>
+    <a href="{{ path('admin_dashboard') }}"><button class="btn-admin">ACCEDER A ADMIN →</button></a>
+</div>
+{% endif %}
 {% endblock %}

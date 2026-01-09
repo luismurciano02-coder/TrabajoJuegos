@@ -1,46 +1,58 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Listado de Juegos{% endblock %}
+{% block title %}Catálogo de Juegos{% endblock %}
 
 {% block body %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb" style="background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px;">
-        <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Inicio</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Juegos</li>
-    </ol>
-</nav>
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mb-0">🎯 Juegos Disponibles</h1>
-            <p class="text-muted">Juegos filtrados por tu token. ¡Elige tu aventura!</p>
+<style>
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-group a { text-decoration: none; }
+    .btn-jugar { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 15px; display: inline-block; transition: all 0.3s; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(228, 48, 39, 0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-jugar:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(228, 48, 39, 0.5); }
+    .btn-small { background: #444444; color: #FFFFFF; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; display: inline-block; border: none; cursor: pointer; transition: all 0.3s; }
+    .btn-small:hover { background: #555555; transform: translateY(-1px); }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-top: 28px; }
+    .game-card { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); transition: all 0.3s; border: 2px solid #444444; }
+    .game-card:hover { transform: translateY(-8px); box-shadow: 0 16px 32px rgba(228, 48, 39, 0.2); border-color: #E43027; }
+    .game-card-header { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); padding: 20px; color: white; }
+    .game-card-header h2 { margin: 0; font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge { display: inline-block; font-size: 11px; padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.2); margin-top: 8px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    .game-card-footer { padding: 20px; border-top: 2px solid #444444; }
+    .btn-new { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; margin-bottom: 20px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(228, 48, 39, 0.3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-new:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(228, 48, 39, 0.5); }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+    <h1 class="page-title">🎮 CATÁLOGO DE JUEGOS</h1>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_juegos_new') }}"><button class="btn-new">+ NUEVO JUEGO</button></a>
+    {% endif %}
+</div>
+
+{% if juegos|length == 0 %}
+<p style="text-align: center; color: #AAAAAA; padding: 60px 20px; font-size: 16px;">No hay juegos disponibles aún. {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_juegos_new') }}" style="color: #E43027; text-decoration: none; font-weight: 700; text-transform: uppercase;">CREAR EL PRIMERO →</a>{% endif %}</p>
+{% else %}
+
+<div class="games-grid">
+    {% for juego in juegos %}
+    <div class="game-card">
+        <div class="game-card-header">
+            <h2>{{ juego.nombre }}</h2>
+            <span class="badge" style="background: {% if juego.activo %}rgba(76, 175, 80, 0.4){% else %}rgba(244, 67, 54, 0.4){% endif %}">
+                {% if juego.activo %}✓ ACTIVO{% else %}✗ INACTIVO{% endif %}
+            </span>
+        </div>
+        <div class="game-card-footer">
+            <div class="btn-group">
+                <a href="{{ path('app_juegos_play', {'id': juego.id}) }}"><button class="btn-jugar">▶ JUGAR</button></a>
+                <a href="{{ path('app_juegos_show', {'id': juego.id}) }}"><button class="btn-small">VER</button></a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}"><button class="btn-small">EDITAR</button></a>
+                {% endif %}
+            </div>
         </div>
     </div>
-
-    <div class="row">
-        {% for juego in juegos %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">🎮 {{ juego.nombre }}</h5>
-                        <p class="card-text flex-grow-1">
-                            <strong>Activo:</strong> {{ juego.activo ? '✅ Sí' : '❌ No' }}<br>
-                            <strong>Token:</strong> {{ juego.token }}
-                        </p>
-                        <div class="mt-auto">
-                            <a href="{{ path('app_juegos_show', {'id': juego.id}) }}" class="btn btn-primary me-2">👀 Ver Detalles</a>
-                            <a href="{{ path('app_juegos_edit', {'id': juego.id}) }}" class="btn btn-secondary">✏️ Editar</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info" role="alert">
-                    🚫 No se encontraron juegos para tu token. ¡Crea uno nuevo!
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+    {% endfor %}
 </div>
+
+{% endif %}
 {% endblock %}
