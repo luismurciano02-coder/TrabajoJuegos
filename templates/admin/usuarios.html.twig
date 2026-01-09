@@ -362,6 +362,27 @@
         color: #155724;
         border: 1px solid #c3e6cb;
     }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85em;
+        transition: background-color 0.2s;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
 </style>
 
 <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
@@ -408,6 +429,7 @@
                     <th>Rol</th>
                     <th>Estado</th>
                     <th>Token</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -433,6 +455,11 @@
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <span class="token-cell">{{ usuario.token }}</span>
                                 <button class="copy-token-btn" onclick="copyToClipboard('{{ usuario.token }}', this)">Copiar</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-delete" onclick="openDeleteModal({{ usuario.id }}, '{{ usuario.email }}', '{{ usuario.nombre }}')">🗑️ Eliminar</button>
                             </div>
                         </td>
                     </tr>
@@ -467,9 +494,43 @@
                 <label for="password">Contraseña <span style="color: #dc3545;">*</span></label>
                 <input type="password" id="password" name="password" required placeholder="Contraseña segura">
             </div>
+            <div class="form-group">
+                <label for="role">Rol</label>
+                <select id="role" name="role" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px;">
+                    <option value="ROLE_USER" selected>👤 Usuario (ROLE_USER)</option>
+                    <option value="ROLE_ADMIN">🔑 Administrador (ROLE_ADMIN)</option>
+                </select>
+            </div>
             <div class="form-actions">
                 <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
                 <button type="submit" class="btn-submit">Crear Usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para eliminar usuario -->
+<div id="deleteUsuarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🗑️ Eliminar Usuario</h2>
+            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <p style="color: #666; margin-bottom: 20px;">
+            ¿Estás seguro de que quieres eliminar al usuario?
+        </p>
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+            <p style="margin: 5px 0; color: #333;"><strong>Email:</strong> <span id="deleteEmail"></span></p>
+            <p style="margin: 5px 0; color: #333;"><strong>Nombre:</strong> <span id="deleteName"></span></p>
+        </div>
+        <p style="color: #dc3545; font-size: 0.95em; margin-bottom: 20px;">
+            ⚠️ Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a este usuario.
+        </p>
+        <form method="POST" id="deleteForm">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_usuario') }}">
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                <button type="submit" class="btn-delete" style="padding: 12px 24px;">Sí, Eliminar Usuario</button>
             </div>
         </form>
     </div>
@@ -484,13 +545,29 @@ function closeModal() {
     document.getElementById('crearUsuarioModal').classList.remove('show');
 }
 
+function openDeleteModal(usuarioId, email, nombre) {
+    document.getElementById('deleteEmail').textContent = email;
+    document.getElementById('deleteName').textContent = nombre;
+    document.getElementById('deleteForm').action = '{{ path('admin_usuario_delete', {'id': 'PLACEHOLDER'}) }}'.replace('PLACEHOLDER', usuarioId);
+    document.getElementById('deleteUsuarioModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteUsuarioModal').classList.remove('show');
+}
+
 // Cerrar modal cuando se hace click fuera
 window.onclick = function(event) {
-    const modal = document.getElementById('crearUsuarioModal');
-    if (event.target == modal) {
-        modal.classList.remove('show');
+    const crearModal = document.getElementById('crearUsuarioModal');
+    const deleteModal = document.getElementById('deleteUsuarioModal');
+    if (event.target == crearModal) {
+        crearModal.classList.remove('show');
+    }
+    if (event.target == deleteModal) {
+        deleteModal.classList.remove('show');
     }
 }
+
 function filterTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();

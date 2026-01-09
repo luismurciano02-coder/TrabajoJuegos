@@ -38,8 +38,12 @@
     /* SNAKE */
     #snakeCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
     
-    /* PONG */
-    #pongCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    /* BREAKOUT */
+    #breakoutCanvas { background: #000; border: 3px solid #E43027; display: block; margin: 20px auto; }
+    
+    /* MINESWEEPER */
+    .minesweeper-board { display: grid; gap: 2px; justify-content: center; margin: 20px auto; }
+    .minesweeper-btn { width: 40px; height: 40px; font-weight: 700; cursor: pointer; border: 1px solid #999; }
     
     /* AJEDREZ */
     .chess-board { display: inline-block; border: 3px solid #E43027; margin: 20px 0; }
@@ -135,6 +139,31 @@
                 <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
             </div>
             <p id="pongInstructions" style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa FLECHAS ◀ ▶ o A/D. ¡Rompe todos los bloques!</p>
+
+        <!-- BREAKOUT GAME -->
+        {% elseif juego.nombre == 'Breakout' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">BREAKOUT</h2>
+            <canvas id="breakoutCanvas" width="480" height="320"></canvas>
+            <div style="margin-top: 20px;">
+                <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+            </div>
+            <p style="color: #AAAAAA; margin-top: 16px; font-size: 13px;">Usa A/D o FLECHAS ◀ ▶ para mover la paleta. Rompe todos los ladrillos.</p>
+
+        <!-- MINESWEEPER GAME -->
+        {% elseif juego.nombre == 'Minesweeper' %}
+            <h2 style="color: #E43027; margin-bottom: 20px; text-transform: uppercase;">BUSCAMINAS</h2>
+            <div style="margin-top: 12px; text-align:center;">
+                <div style="margin-bottom:12px;">
+                    <button class="btn-game success" id="startBtn">▶ INICIAR</button>
+                    <button class="btn-game secondary" id="resetBtn">⟳ REINICIAR</button>
+                </div>
+                <div id="minesBoardWrapper" style="margin: 20px auto;">
+                    <div id="minesBoard" class="minesweeper-board"></div>
+                </div>
+                <p style="color:#AAA; margin-top:10px;">Objetivo: descubre todas las casillas sin minas. Click izquierdo: revelar, Click derecho: bandera.</p>
+            </div>
+        
         {% endif %}
     </div>
 
@@ -164,6 +193,36 @@
 
     function setStatus(text) {
         statusEl.textContent = text;
+    }
+
+    // Guardar puntuación en el servidor
+    const userToken = '{{ app.user.token|default('') }}';
+    const juegoId = {{ juego.id }};
+    
+    async function saveScoreToServer(puntos) {
+        if (!userToken) {
+            console.warn('Usuario no autenticado: no se guardará la puntuación');
+            return;
+        }
+        try {
+            const response = await fetch('{{ path("api_puntuaciones_save") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: userToken,
+                    juego_id: juegoId,
+                    puntuacion: Math.max(0, Math.floor(puntos))
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Puntuación guardada:', data);
+            } else {
+                console.error('Error al guardar puntuación:', await response.text());
+            }
+        } catch (err) {
+            console.error('Error al enviar puntuación:', err);
+        }
     }
 
     // ==================== TETRIS ====================
@@ -310,6 +369,7 @@
                     if (!canMove(currentPiece, pieceX, pieceY)) {
                         gameRunning = false;
                         setStatus('GAME OVER');
+                        saveScoreToServer(score);
                         startBtn.disabled = false;
                     }
                 } else {
@@ -868,6 +928,7 @@
             if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
                 gameRunning = false;
                 setStatus('GAME OVER');
+                saveScoreToServer(score);
                 return;
             }
 
@@ -875,6 +936,7 @@
             if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                 gameRunning = false;
                 setStatus('GAME OVER');
+                saveScoreToServer(score);
                 return;
             }
 
@@ -1120,6 +1182,282 @@
         startBtn.addEventListener('click', startPong);
         resetBtn.addEventListener('click', resetPong);
         drawPong();
+    }
+
+    // ==================== BREAKOUT ====================
+    else if (gameName === 'Breakout') {
+        const canvas = document.getElementById('breakoutCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false;
+        let breakoutInterval = null;
+
+        const paddle = { width: 80, height: 12, x: (canvas.width - 80) / 2, speed: 7 };
+        const ball = { x: canvas.width / 2, y: canvas.height - 30, r: 7, vx: 3, vy: -3 };
+        let bricks = [];
+        let brickRowCount = 5;
+        let brickColumnCount = 8;
+        let brickPadding = 8;
+        let brickOffsetTop = 40;
+        let brickOffsetLeft = 30;
+
+        function initBricks() {
+            bricks = [];
+            const availableWidth = canvas.width - brickOffsetLeft * 2;
+            const brickWidth = Math.floor((availableWidth - (brickColumnCount - 1) * brickPadding) / brickColumnCount);
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    const brickX = brickOffsetLeft + c * (brickWidth + brickPadding);
+                    const brickY = brickOffsetTop + r * (15 + brickPadding);
+                    bricks.push({ x: brickX, y: brickY, width: brickWidth, height: 15, alive: true });
+                }
+            }
+        }
+
+        function drawBricks() {
+            bricks.forEach(b => {
+                if (!b.alive) return;
+                ctx.fillStyle = '#FF6B6B';
+                ctx.fillRect(b.x, b.y, b.width, b.height);
+                ctx.strokeStyle = '#000';
+                ctx.strokeRect(b.x, b.y, b.width, b.height);
+            });
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = '#00A8FF';
+            ctx.fillRect(paddle.x, canvas.height - 30, paddle.width, paddle.height);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        const keys = {};
+        document.addEventListener('keydown', (e) => { 
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true; 
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true; 
+        });
+        document.addEventListener('keyup', (e) => { 
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false; 
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false; 
+        });
+
+        function updateBreakout() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (keys.left) paddle.x -= paddle.speed;
+            if (keys.right) paddle.x += paddle.speed;
+            paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            if (ball.x + ball.r > canvas.width || ball.x - ball.r < 0) ball.vx *= -1;
+            if (ball.y - ball.r < 0) ball.vy *= -1;
+
+            if (ball.y + ball.r > canvas.height - 30 && ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                ball.vy *= -1;
+                ball.y = canvas.height - 30 - ball.r;
+            }
+
+            // colisión con ladrillos
+            for (let i = 0; i < bricks.length; i++) {
+                const b = bricks[i];
+                if (!b.alive) continue;
+                if (ball.x > b.x && ball.x < b.x + b.width && ball.y - ball.r > b.y && ball.y - ball.r < b.y + b.height) {
+                    b.alive = false;
+                    ball.vy *= -1;
+                    updateScore(20);
+                }
+            }
+
+            drawBricks();
+            drawPaddle();
+            drawBall();
+
+            if (bricks.every(b => !b.alive)) {
+                gameRunning = false;
+                setStatus('¡VICTORIA!');
+                saveScoreToServer(score);
+                clearInterval(breakoutInterval);
+                startBtn.disabled = false;
+            }
+
+            if (ball.y - ball.r > canvas.height) {
+                gameRunning = false;
+                setStatus('GAME OVER');
+                saveScoreToServer(score);
+                clearInterval(breakoutInterval);
+                startBtn.disabled = false;
+            }
+        }
+
+        function startBreakout() {
+            if (gameRunning) return;
+            initBricks();
+            paddle.x = (canvas.width - paddle.width) / 2;
+            ball.x = canvas.width / 2; ball.y = canvas.height - 30; ball.vx = 3; ball.vy = -3;
+            score = 0; level = 1; scoreEl.textContent = score; levelEl.textContent = level;
+            setStatus('EN JUEGO');
+            startBtn.disabled = true; resetBtn.disabled = false; gameRunning = true;
+            breakoutInterval = setInterval(updateBreakout, 1000 / 60);
+        }
+
+        function resetBreakout() {
+            gameRunning = false;
+            clearInterval(breakoutInterval);
+            score = 0; level = 1; scoreEl.textContent = score; levelEl.textContent = level;
+            setStatus('LISTO');
+            startBtn.disabled = false; resetBtn.disabled = false;
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            initBricks();
+            drawBricks(); drawPaddle(); drawBall();
+        }
+
+        startBtn.addEventListener('click', startBreakout);
+        resetBtn.addEventListener('click', resetBreakout);
+        initBricks();
+        drawBricks(); drawPaddle(); drawBall();
+    }
+
+    // ==================== MINESWEEPER ====================
+    else if (gameName === 'Minesweeper') {
+        const minesBoard = document.getElementById('minesBoard');
+        let msRows = 9;
+        let msCols = 9;
+        let msMines = 10;
+        let msBoard = [];
+        let msRevealed = 0;
+        let msGameRunning = false;
+
+        function buildMines(rows, cols, mines) {
+            msRows = rows; msCols = cols; msMines = Math.min(mines, rows * cols - 1);
+            msBoard = Array(rows * cols).fill(null).map(() => ({ mine: false, revealed: false, flagged: false, adj: 0 }));
+
+            let placed = 0;
+            while (placed < msMines) {
+                const idx = Math.floor(Math.random() * msBoard.length);
+                if (!msBoard[idx].mine) { msBoard[idx].mine = true; placed++; }
+            }
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const i = r * cols + c;
+                    if (msBoard[i].mine) continue;
+                    let count = 0;
+                    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        const rr = r + dr, cc = c + dc;
+                        if (rr >= 0 && rr < rows && cc >= 0 && cc < cols) {
+                            if (msBoard[rr * cols + cc].mine) count++;
+                        }
+                    }
+                    msBoard[i].adj = count;
+                }
+            }
+            msRevealed = 0;
+        }
+
+        function renderMines() {
+            minesBoard.style.gridTemplateColumns = `repeat(${msCols}, 40px)`;
+            minesBoard.innerHTML = '';
+            for (let i = 0; i < msBoard.length; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'minesweeper-btn';
+                btn.style.width = '40px';
+                btn.style.height = '40px';
+                btn.style.background = '#DDD';
+                btn.dataset.index = i;
+                btn.oncontextmenu = (e) => { e.preventDefault(); toggleFlag(i); };
+                btn.onclick = () => revealCell(i);
+                minesBoard.appendChild(btn);
+            }
+        }
+
+        function revealCell(i) {
+            if (!msBoard[i] || msBoard[i].revealed || msBoard[i].flagged || !msGameRunning) return;
+            msBoard[i].revealed = true;
+            const btn = minesBoard.querySelector(`button[data-index='${i}']`);
+            if (!btn) return;
+            btn.style.background = '#EEE';
+            if (msBoard[i].mine) {
+                btn.textContent = '💣';
+                btn.style.background = '#F8D7DA';
+                setStatus('GAME OVER');
+                msGameRunning = false;
+                msBoard.forEach((cell, idx) => {
+                    if (cell.mine) {
+                        const b = minesBoard.querySelector(`button[data-index='${idx}']`);
+                        if (b) b.textContent = '💣';
+                    }
+                });
+                saveScoreToServer(msRevealed);
+                return;
+            }
+            msRevealed++;
+            score = msRevealed;
+            scoreEl.textContent = score;
+            if (msBoard[i].adj > 0) {
+                btn.textContent = msBoard[i].adj;
+            } else {
+                const r = Math.floor(i / msCols), c = i % msCols;
+                for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                    const rr = r + dr, cc = c + dc;
+                    if (rr >= 0 && rr < msRows && cc >= 0 && cc < msCols) {
+                        const ni = rr * msCols + cc;
+                        if (!msBoard[ni].revealed) revealCell(ni);
+                    }
+                }
+            }
+
+            if (msRevealed === msRows * msCols - msMines) {
+                msGameRunning = false;
+                setStatus('¡VICTORIA!');
+                saveScoreToServer(msRevealed);
+            }
+        }
+
+        function toggleFlag(i) {
+            if (!msBoard[i] || msBoard[i].revealed || !msGameRunning) return;
+            msBoard[i].flagged = !msBoard[i].flagged;
+            const btn = minesBoard.querySelector(`button[data-index='${i}']`);
+            if (btn) btn.textContent = msBoard[i].flagged ? '🚩' : '';
+        }
+
+        function startMinesweeper() {
+            if (msGameRunning) return;
+            buildMines(9, 9, 10);
+            renderMines();
+            msGameRunning = true;
+            msRevealed = 0;
+            score = 0;
+            scoreEl.textContent = score;
+            setStatus('EN JUEGO');
+            startBtn.disabled = true;
+            resetBtn.disabled = false;
+        }
+
+        function resetMinesweeper() {
+            msGameRunning = false;
+            buildMines(9,9,10);
+            renderMines();
+            msRevealed = 0;
+            score = 0;
+            scoreEl.textContent = score;
+            setStatus('LISTO');
+            startBtn.disabled = false;
+            resetBtn.disabled = false;
+        }
+
+        startBtn.addEventListener('click', startMinesweeper);
+        resetBtn.addEventListener('click', resetMinesweeper);
+        buildMines(9, 9, 10);
+        renderMines();
     }
 </script>
 {% endblock %}

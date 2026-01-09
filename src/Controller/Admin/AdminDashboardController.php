@@ -87,7 +87,15 @@ class AdminDashboardController extends AbstractController {
         $user = new User();
         $user->setEmail($data['email']);
         $user->setNombre($data['nombre']);
-        $user->setRoles(['ROLE_USER']);
+
+        // Procesar rol seleccionado (por seguridad: sólo permitir valores esperados)
+        $selectedRole = (isset($data['role']) ? $data['role'] : 'ROLE_USER');
+        $allowedRoles = ['ROLE_USER', 'ROLE_ADMIN'];
+        if (!in_array($selectedRole, $allowedRoles, true)) {
+            $selectedRole = 'ROLE_USER';
+        }
+        $user->setRoles([$selectedRole]);
+
         $user->setActivo(true);
         $user->setToken($this->generateToken());
 
@@ -127,5 +135,33 @@ class AdminDashboardController extends AbstractController {
         $this->entityManager->flush();
 
         return $this->redirectToRoute('admin_tokens');
+    }
+
+    #[Route('/usuarios/delete/{id}', name: 'admin_usuario_delete', methods: ['POST'])]
+    public function deleteUsuario(int $id, Request $request, UserRepository $userRepo): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // Validar CSRF token
+        if (!$this->isCsrfTokenValid('delete_usuario', $request->request->get('_token'))) {
+            return $this->redirectToRoute('admin_usuarios');
+        }
+
+        // Obtener el usuario a eliminar
+        $usuario = $userRepo->find($id);
+        
+        if (!$usuario) {
+            return $this->redirectToRoute('admin_usuarios');
+        }
+
+        // No permitir eliminar al administrador actual (seguridad)
+        if ($usuario === $this->getUser()) {
+            return $this->redirectToRoute('admin_usuarios');
+        }
+
+        // Eliminar el usuario
+        $this->entityManager->remove($usuario);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('admin_usuarios');
     }
 }

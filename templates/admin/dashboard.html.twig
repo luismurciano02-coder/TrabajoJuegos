@@ -80,12 +80,14 @@
         </thead>
         <tbody>
             {% for puntuacion in historico_completo %}
+                {% if puntuacion.juego %}
                 <tr>
                     <td>{{ puntuacion.user.nombre|default(puntuacion.user.email) }}</td>
                     <td>{{ puntuacion.juego.nombre }}</td>
                     <td><strong>{{ puntuacion.puntuacion }}</strong></td>
                     <td>{{ puntuacion.fecha|date('d/m/Y H:i') }}</td>
                 </tr>
+                {% endif %}
             {% else %}
                 <tr><td colspan="4">No hay puntuaciones registradas aún.</td></tr>
             {% endfor %}

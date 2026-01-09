@@ -335,8 +335,8 @@
             </thead>
             <tbody>
                 {% for token in tokens %}
-                    <tr class="token-row" data-nombre="{{ token.nombre|lower }}">
-                        <td>{{ token.nombre }}</td>
+                    <tr class="token-row" data-nombre="{{ token.nombreJuego|lower }}">
+                        <td style="color: #667eea; font-weight: 600;">{{ token.nombreJuego }}</td>
                         <td>
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <span class="token-cell">{{ token.token }}</span>

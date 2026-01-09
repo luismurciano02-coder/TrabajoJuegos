@@ -3,62 +3,88 @@
 {% block title %}Iniciar Sesión{% endblock %}
 
 {% block body %}
+<style>
+    .login-container { max-width: 500px; margin: 60px auto; }
+    .login-card { background: linear-gradient(135deg, #2C2C2C 0%, #1F1F1F 100%); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; border: 2px solid #444444; }
+    .login-header { background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); padding: 40px 30px; text-align: center; }
+    .login-header h1 { margin: 0; font-size: 36px; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 1px; }
+    .login-body { padding: 40px 30px; }
+    .form-group { margin-bottom: 24px; }
+    .form-group label { display: block; margin-bottom: 12px; color: #E43027; font-weight: 700; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+    .form-group input { width: 100%; padding: 14px 16px; border: 2px solid #444444; border-radius: 6px; background: #333333; color: #FFFFFF; font-size: 16px; transition: all 0.3s; font-family: inherit; }
+    .form-group input:focus { outline: none; border-color: #E43027; box-shadow: 0 0 0 3px rgba(228, 48, 39, 0.2); background: #3C3C3C; }
+    .form-group input::placeholder { color: #999999; }
+    .checkbox-group { display: flex; align-items: center; margin-bottom: 20px; gap: 10px; }
+    .checkbox-group input { width: 20px; height: 20px; cursor: pointer; }
+    .checkbox-group label { margin: 0; color: #AAAAAA; font-weight: 500; font-size: 14px; cursor: pointer; text-transform: none; letter-spacing: 0; }
+    .btn-login { width: 100%; padding: 16px; background: linear-gradient(135deg, #E43027 0%, #C41E1A 100%); color: white; border: none; border-radius: 6px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(228, 48, 39, 0.3); }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(228, 48, 39, 0.5); }
+    .btn-login:active { transform: translateY(0); }
+    .alert { padding: 15px 16px; border-radius: 6px; margin-bottom: 20px; font-weight: 500; border-left: 4px solid; }
+    .alert-danger { background: #f8d7da; color: #721c24; border-left-color: #f5c6cb; }
+    .alert-info { background: #d1ecf1; color: #0c5460; border-left-color: #bee5eb; }
+    .login-footer { background: #2C2C2C; padding: 24px 30px; text-align: center; border-top: 1px solid #444444; }
+    .login-footer p { margin: 0; color: #AAAAAA; font-size: 14px; }
+    .login-footer a { color: #E43027; text-decoration: none; font-weight: 700; transition: all 0.3s; }
+    .login-footer a:hover { color: #FF6B5B; text-decoration: underline; }
+    .already-logged { padding: 20px; background: #333333; border-radius: 6px; border-left: 4px solid #E43027; }
+    .already-logged p { margin: 0; color: #FFFFFF; font-size: 15px; }
+    .already-logged a { color: #E43027; font-weight: 700; text-decoration: none; }
+    .already-logged a:hover { color: #FF6B5B; }
+</style>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title text-center">🔑 Iniciar Sesión</h3>
-                </div>
-                <div class="card-body">
-                    {% if error %}
-                        <div class="alert alert-danger">⚠️ {{ error.messageKey|trans(error.messageData, 'security') }}</div>
-                    {% endif %}
-
-                    {% if app.user %}
-                        <div class="alert alert-info mb-3">
-                            Ya has iniciado sesión como {{ app.user.userIdentifier }}. 
-                            ¿Quieres <a href="{{ logout_path() }}" class="alert-link">🚪 Cerrar Sesión</a>?
-                        </div>
-                    {% else %}
-                        <form method="post">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">📧 Correo Electrónico</label>
-                                <input type="email" value="{{ last_username }}" name="_username" id="username" 
-                                       class="form-control" autocomplete="email" required autofocus>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">🔒 Contraseña</label>
-                                <input type="password" name="_password" id="password" 
-                                       class="form-control" autocomplete="current-password" required>
-                            </div>
-                            
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                            
-                        
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" name="_remember_me" id="_remember_me">
-                                <label class="form-check-label" for="_remember_me">Recordar mi sesión</label>
-                            </div>
-                            
-                            
-                            <div class="d-grid">
-                                <button class="btn btn-primary" type="submit">
-                                    🚀 Iniciar Sesión
-                                </button>
-                            </div>
-                        </form>
-                    {% endif %}
-                </div>
-                
-                {% if not app.user %}
-                <div class="card-footer text-center">
-                    <p>¿No tienes cuenta? <a href="{{ path('app_user_new') }}">✨ Regístrate aquí</a></p>
-                </div>
-                {% endif %}
-            </div>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>🔐 INICIAR SESIÓN</h1>
         </div>
+        
+        <div class="login-body">
+            {% if error %}
+                <div class="alert alert-danger">
+                    ⚠️ {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            {% if app.user %}
+                <div class="alert alert-info">
+                    ✓ Ya has iniciado sesión como <strong>{{ app.user.userIdentifier }}</strong>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="{{ logout_path() }}" class="btn-login" style="background: #E74C3C; display: inline-block; width: auto; padding: 12px 28px; text-decoration: none;">🚪 Cerrar Sesión</a>
+                    <a href="{{ path('app_home') }}" class="btn-login" style="background: #667eea; display: inline-block; width: auto; padding: 12px 28px; margin-left: 10px; text-decoration: none;">← Volver al Inicio</a>
+                </div>
+            {% else %}
+                <form method="post">
+                    <div class="form-group">
+                        <label for="username">📧 Correo Electrónico</label>
+                        <input type="email" value="{{ last_username }}" name="_username" id="username" 
+                               class="form-control" autocomplete="email" placeholder="tu@correo.com" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">🔒 Contraseña</label>
+                        <input type="password" name="_password" id="password" 
+                               class="form-control" autocomplete="current-password" placeholder="••••••••" required>
+                    </div>
+
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="_remember_me" id="_remember_me">
+                        <label for="_remember_me">Recordar mi sesión</label>
+                    </div>
+
+                    <button class="btn-login" type="submit">🚀 INICIAR SESIÓN</button>
+                </form>
+            {% endif %}
+        </div>
+
+        {% if not app.user %}
+        <div class="login-footer">
+            <p>¿No tienes cuenta? <a href="{{ path('app_user_new') }}">✨ Regístrate aquí →</a></p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
