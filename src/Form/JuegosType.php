@@ -19,7 +19,7 @@ class JuegosType extends AbstractType
             ->add('token')
             ->add('aplicacion', EntityType::class, [
                 'class' => Aplicaciones::class,
-                'choice_label' => 'id',
+                'choice_label' => 'nombre',
             ])
         ;
     }
