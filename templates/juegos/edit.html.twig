@@ -1,13 +1,247 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Juegos{% endblock %}
+{% block title %}Editar Juego{% endblock %}
 
 {% block body %}
-    <h1>Edit Juegos</h1>
+<style>
+    .edit-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-    {{ include('juegos/_form.html.twig', {'button_label': 'Update'}) }}
+    .edit-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
 
-    <a href="{{ path('app_juegos_index') }}">back to list</a>
+    .edit-header h1 {
+        margin: 0;
+        font-size: 2.2em;
+    }
 
-    {{ include('juegos/_delete_form.html.twig') }}
+    .edit-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+    }
+
+    .form-section {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .form-section h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.3em;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1em;
+        box-sizing: border-box;
+        font-family: inherit;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 1em;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: #e0e0e0;
+        color: #333;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 1em;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #d0d0d0;
+        color: #333;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .danger-section {
+        background: #fff5f5;
+        border-left: 4px solid #dc3545;
+        padding: 20px;
+        border-radius: 4px;
+        margin-top: 30px;
+    }
+
+    .danger-section h3 {
+        margin-top: 0;
+        color: #dc3545;
+    }
+
+    .danger-section p {
+        color: #666;
+        margin-bottom: 15px;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 16px;
+        background-color: #667eea;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+
+    .back-link:hover {
+        background-color: #764ba2;
+        color: white;
+    }
+
+    .form-info {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 6px;
+        border-left: 4px solid #667eea;
+        margin-bottom: 20px;
+        color: #666;
+    }
+</style>
+
+<div class="edit-container">
+    <a href="{{ path('app_juegos_index') }}" class="back-link">← Volver a la lista</a>
+
+    <div class="edit-header">
+        <h1>✏️ Editar Juego</h1>
+        <p>Actualiza la información del juego</p>
+    </div>
+
+    <div class="form-section">
+        <h2>📋 Información del Juego</h2>
+        
+        <div class="form-info">
+            ℹ️ Completa todos los campos para actualizar correctamente la información del juego.
+        </div>
+
+        <form method="POST" action="{{ path('app_juegos_edit', {'id': juego.id}) }}">
+            {% if form.vars.errors %}
+                <div style="background-color: #f8d7da; padding: 12px; border-radius: 6px; margin-bottom: 20px; color: #721c24; border: 1px solid #f5c6cb;">
+                    <strong>⚠️ Errores al validar:</strong>
+                    {{ form_errors(form) }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                {% if field.vars.name != 'csrf_token' and field.vars.name != '_token' %}
+                    <div class="form-group">
+                        {{ form_label(field) }}
+                        {{ form_widget(field) }}
+                        {% if field.vars.errors %}
+                            <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">
+                                {{ form_errors(field) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
+                <a href="{{ path('app_juegos_index') }}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-section danger-section">
+        <h3>🗑️ Zona de Peligro</h3>
+        <p>Esta acción eliminará el juego y todos sus datos asociados de forma permanente. Esta operación no se puede deshacer.</p>
+        
+        <form method="post" action="{{ path('app_juegos_delete', {'id': juego.id}) }}" 
+              style="display: inline;" 
+              onsubmit="return confirm('⚠️ ¿Estás completamente seguro de que quieres eliminar este juego? Esta acción no se puede deshacer.');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ juego.id) }}">
+            <button type="submit" class="btn-danger">🗑️ Eliminar Juego</button>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

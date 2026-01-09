@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestión de Tokens - Admin{% endblock %}
+{% block title %}Gestión de Aplicaciones - Admin{% endblock %}
 
 {% block body %}
 <style>
@@ -26,7 +26,7 @@
         opacity: 0.9;
     }
 
-    .tokens-table {
+    .aplicaciones-table {
         width: 100%;
         border-collapse: collapse;
         background: white;
@@ -35,33 +35,38 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .tokens-table thead {
+    .aplicaciones-table thead {
         background-color: #667eea;
         color: white;
     }
 
-    .tokens-table th {
+    .aplicaciones-table th {
         padding: 16px;
         text-align: left;
         font-weight: 600;
         border-bottom: 2px solid #667eea;
     }
 
-    .tokens-table td {
+    .aplicaciones-table td {
         padding: 14px 16px;
         border-bottom: 1px solid #e0e0e0;
     }
 
-    .tokens-table tbody tr:hover {
+    .aplicaciones-table tbody tr:hover {
         background-color: #f5f5f5;
         transition: background-color 0.2s;
     }
 
-    .tokens-table tbody tr:last-child td {
+    .aplicaciones-table tbody tr:last-child td {
         border-bottom: none;
     }
 
-    .token-cell {
+    .nombre-cell {
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .apikey-cell {
         font-family: 'Courier New', monospace;
         background-color: #f5f5f5;
         padding: 8px 12px;
@@ -71,19 +76,22 @@
         color: #0066cc;
     }
 
-    .copy-token-btn {
-        background-color: #667eea;
-        color: white;
-        border: none;
+    .status-badge {
+        display: inline-block;
         padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
+        border-radius: 20px;
         font-size: 0.85em;
-        transition: background-color 0.2s;
+        font-weight: bold;
     }
 
-    .copy-token-btn:hover {
-        background-color: #764ba2;
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
     }
 
     .stats-container {
@@ -113,28 +121,19 @@
         font-size: 0.95em;
     }
 
-    .back-link {
-        display: inline-block;
-        margin-bottom: 20px;
-        padding: 10px 16px;
+    .copy-apikey-btn {
         background-color: #667eea;
         color: white;
-        text-decoration: none;
-        border-radius: 6px;
-        font-weight: 600;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85em;
         transition: background-color 0.2s;
     }
 
-    .back-link:hover {
+    .copy-apikey-btn:hover {
         background-color: #764ba2;
-    }
-
-    .no-tokens {
-        background-color: #f5f5f5;
-        padding: 40px;
-        text-align: center;
-        border-radius: 8px;
-        color: #666;
     }
 
     .search-box {
@@ -156,21 +155,28 @@
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
-    .btn-add-app {
-        background-color: #28a745;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 1em;
-        transition: background-color 0.2s;
-        margin-bottom: 20px;
+    .no-aplicaciones {
+        background-color: #f5f5f5;
+        padding: 40px;
+        text-align: center;
+        border-radius: 8px;
+        color: #666;
     }
 
-    .btn-add-app:hover {
-        background-color: #218838;
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 16px;
+        background-color: #667eea;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+
+    .back-link:hover {
+        background-color: #764ba2;
     }
 
     .modal {
@@ -301,56 +307,112 @@
     .btn-cancel:hover {
         background-color: #d0d0d0;
     }
+
+    .btn-add-aplicacion {
+        background-color: #28a745;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1em;
+        transition: background-color 0.2s;
+        margin-bottom: 20px;
+    }
+
+    .btn-add-aplicacion:hover {
+        background-color: #218838;
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85em;
+        transition: background-color 0.2s;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
 </style>
 
 <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
     <a href="{{ path('admin_dashboard') }}" class="back-link">← Volver al Dashboard</a>
 
     <div class="admin-header">
-        <h1>🔑 Gestión de Tokens de Aplicaciones</h1>
-        <p>Lista de tokens de las aplicaciones registradas en el sistema</p>
+        <h1>📱 Gestión de Aplicaciones</h1>
+        <p>Lista completa de aplicaciones registradas en el sistema con sus API Keys</p>
     </div>
+
+    <button class="btn-add-aplicacion" onclick="openModal()">➕ Crear Nueva Aplicación</button>
 
     <div class="stats-container">
         <div class="stat-card">
-            <h3>{{ tokens|length }}</h3>
+            <h3>{{ aplicaciones|length }}</h3>
             <p>Total de Aplicaciones</p>
         </div>
+        <div class="stat-card">
+            <h3>{{ aplicaciones|filter(a => a.activo)|length }}</h3>
+            <p>Aplicaciones Activas</p>
+        </div>
     </div>
-
-    <button class="btn-add-app" onclick="openModal()">➕ Crear Nueva Aplicación</button>
 
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre de aplicación..." onkeyup="filterTable()">
     </div>
 
-    {% if tokens|length > 0 %}
-        <table class="tokens-table" id="tokensTable">
+    {% if aplicaciones|length > 0 %}
+        <table class="aplicaciones-table" id="aplicacionesTable">
             <thead>
                 <tr>
-                    <th>Nombre de Aplicación</th>
-                    <th>Token</th>
-                    <th>Acción</th>
+                    <th>Nombre</th>
+                    <th>API Key</th>
+                    <th>Estado</th>
+                    <th>Juegos</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for token in tokens %}
-                    <tr class="token-row" data-nombre="{{ token.nombreJuego|lower }}">
-                        <td style="color: #667eea; font-weight: 600;">{{ token.nombreJuego }}</td>
+                {% for aplicacion in aplicaciones %}
+                    <tr class="app-row" data-nombre="{{ aplicacion.nombre|lower }}">
+                        <td class="nombre-cell">{{ aplicacion.nombre }}</td>
                         <td>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                                <span class="token-cell">{{ token.token }}</span>
-                                <button class="copy-token-btn" onclick="copyToClipboard('{{ token.token }}', this)">Copiar</button>
+                                <span class="apikey-cell">{{ aplicacion.apikey }}</span>
+                                <button class="copy-apikey-btn" onclick="copyToClipboard('{{ aplicacion.apikey }}', this)">Copiar</button>
                             </div>
                         </td>
-                        <td style="color: #667eea; font-weight: 600;">✓ Activo</td>
+                        <td>
+                            {% if aplicacion.activo %}
+                                <span class="status-badge status-active">✓ Activa</span>
+                            {% else %}
+                                <span class="status-badge status-inactive">✗ Inactiva</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center; font-weight: 600; color: #667eea;">{{ aplicacion.jugando|length }}</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-delete" onclick="openDeleteModal({{ aplicacion.id }}, '{{ aplicacion.nombre }}')">🗑️ Eliminar</button>
+                            </div>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <div class="no-tokens">
-            <h3>No hay tokens registrados</h3>
+        <div class="no-aplicaciones">
+            <h3>No hay aplicaciones registradas</h3>
             <p>Aún no hay aplicaciones en el sistema</p>
         </div>
     {% endif %}
@@ -363,20 +425,46 @@
             <h2>➕ Crear Nueva Aplicación</h2>
             <button class="close-modal" onclick="closeModal()">&times;</button>
         </div>
-        <form method="POST" action="{{ path('admin_app_crear') }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('admin_app_crear') }}">
+        <form method="POST" action="{{ path('admin_aplicacion_crear') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_aplicacion_crear') }}">
             <div class="form-group">
                 <label for="nombre">Nombre de la Aplicación <span style="color: #dc3545;">*</span></label>
                 <input type="text" id="nombre" name="nombre" required placeholder="Mi Aplicación de Juegos">
             </div>
             <div style="background-color: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 0.9em; color: #666;">
-                    <strong>ℹ️ Nota:</strong> Se generará automáticamente un token único para esta aplicación que podrás usar en tu API.
+                    <strong>ℹ️ Nota:</strong> Se generará automáticamente una API Key única para esta aplicación.
                 </p>
             </div>
             <div class="form-actions">
                 <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
                 <button type="submit" class="btn-submit">Crear Aplicación</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para eliminar aplicación -->
+<div id="deleteAppModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🗑️ Eliminar Aplicación</h2>
+            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <p style="color: #666; margin-bottom: 20px;">
+            ¿Estás seguro de que quieres eliminar esta aplicación?
+        </p>
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+            <p style="margin: 5px 0; color: #333;"><strong>Nombre:</strong> <span id="deleteName"></span></p>
+        </div>
+        <p style="color: #dc3545; font-size: 0.95em; margin-bottom: 20px;">
+            ⚠️ Esta acción no se puede deshacer. Se eliminarán todos los datos asociados a esta aplicación.
+        </p>
+        <form method="POST" id="deleteForm">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_aplicacion') }}">
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                <button type="submit" class="btn-delete" style="padding: 12px 24px;">Sí, Eliminar Aplicación</button>
             </div>
         </form>
     </div>
@@ -391,18 +479,33 @@ function closeModal() {
     document.getElementById('crearAppModal').classList.remove('show');
 }
 
+function openDeleteModal(appId, nombre) {
+    document.getElementById('deleteName').textContent = nombre;
+    document.getElementById('deleteForm').action = '{{ path('admin_aplicacion_delete', {'id': 'PLACEHOLDER'}) }}'.replace('PLACEHOLDER', appId);
+    document.getElementById('deleteAppModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteAppModal').classList.remove('show');
+}
+
 // Cerrar modal cuando se hace click fuera
 window.onclick = function(event) {
-    const modal = document.getElementById('crearAppModal');
-    if (event.target == modal) {
-        modal.classList.remove('show');
+    const crearModal = document.getElementById('crearAppModal');
+    const deleteModal = document.getElementById('deleteAppModal');
+    if (event.target == crearModal) {
+        crearModal.classList.remove('show');
+    }
+    if (event.target == deleteModal) {
+        deleteModal.classList.remove('show');
     }
 }
+
 function filterTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
-    const table = document.getElementById('tokensTable');
-    const rows = table.getElementsByClassName('token-row');
+    const table = document.getElementById('aplicacionesTable');
+    const rows = table.getElementsByClassName('app-row');
 
     Array.from(rows).forEach(row => {
         const nombre = row.getAttribute('data-nombre');
@@ -427,7 +530,7 @@ function copyToClipboard(text, button) {
         }, 2000);
     }).catch(err => {
         console.error('Error al copiar:', err);
-        alert('Error al copiar el token');
+        alert('Error al copiar la API Key');
     });
 }
 </script>

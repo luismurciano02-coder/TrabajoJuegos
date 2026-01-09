@@ -3,9 +3,11 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Entity\AppToken;
+use App\Entity\Aplicaciones;
 use App\Repository\AppTokenRepository;
 use App\Repository\PuntuacionesRepository; 
-use App\Repository\UserRepository;   
+use App\Repository\UserRepository;
+use App\Repository\AplicacionesRepository;   
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -109,34 +111,6 @@ class AdminDashboardController extends AbstractController {
         return $this->redirectToRoute('admin_usuarios');
     }
 
-    #[Route('/aplicaciones/crear', name: 'admin_app_crear', methods: ['POST'])]
-    public function crearAplicacion(Request $request, AppTokenRepository $appRepo): Response {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        $data = $request->request->all();
-
-        // Validar datos
-        if (empty($data['nombre'])) {
-            return $this->redirectToRoute('admin_tokens');
-        }
-
-        // Verificar que el nombre no exista
-        $existingApp = $appRepo->findOneBy(['nombreJuego' => $data['nombre']]);
-        if ($existingApp) {
-            return $this->redirectToRoute('admin_tokens');
-        }
-
-        // Crear nueva aplicación
-        $appToken = new AppToken();
-        $appToken->setNombreJuego($data['nombre']);
-        $appToken->setToken($this->generateToken());
-
-        $this->entityManager->persist($appToken);
-        $this->entityManager->flush();
-
-        return $this->redirectToRoute('admin_tokens');
-    }
-
     #[Route('/usuarios/delete/{id}', name: 'admin_usuario_delete', methods: ['POST'])]
     public function deleteUsuario(int $id, Request $request, UserRepository $userRepo): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
@@ -163,5 +137,106 @@ class AdminDashboardController extends AbstractController {
         $this->entityManager->flush();
 
         return $this->redirectToRoute('admin_usuarios');
+    }
+
+    #[Route('/app-tokens/crear', name: 'admin_app_crear', methods: ['POST'])]
+    public function crearAppToken(Request $request, AppTokenRepository $appRepo): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // Validar CSRF token
+        if (!$this->isCsrfTokenValid('admin_app_crear', $request->request->get('_token'))) {
+            return $this->redirectToRoute('admin_tokens');
+        }
+
+        $data = $request->request->all();
+
+        // Validar datos
+        if (empty($data['nombre'])) {
+            return $this->redirectToRoute('admin_tokens');
+        }
+
+        // Verificar que el nombre no exista
+        $existingApp = $appRepo->findOneBy(['nombreJuego' => $data['nombre']]);
+        if ($existingApp) {
+            return $this->redirectToRoute('admin_tokens');
+        }
+
+        // Crear nuevo token de app
+        $appToken = new AppToken();
+        $appToken->setNombreJuego($data['nombre']);
+        $appToken->setToken($this->generateToken());
+
+        $this->entityManager->persist($appToken);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('admin_tokens');
+    }
+
+    #[Route('/aplicaciones', name: 'admin_aplicaciones')]
+    public function listarAplicaciones(AplicacionesRepository $appRepo): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $aplicaciones = $appRepo->findAll();
+
+        return $this->render('admin/aplicaciones.html.twig', [
+            'aplicaciones' => $aplicaciones,
+        ]);
+    }
+
+    #[Route('/aplicaciones/crear', name: 'admin_aplicacion_crear', methods: ['POST'])]
+    public function crearAplicacion(Request $request, AplicacionesRepository $appRepo): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // Validar CSRF token
+        if (!$this->isCsrfTokenValid('admin_aplicacion_crear', $request->request->get('_token'))) {
+            return $this->redirectToRoute('admin_aplicaciones');
+        }
+
+        $data = $request->request->all();
+
+        // Validar datos
+        if (empty($data['nombre'])) {
+            return $this->redirectToRoute('admin_aplicaciones');
+        }
+
+        // Verificar que el nombre no exista
+        $existingApp = $appRepo->findOneBy(['nombre' => $data['nombre']]);
+        if ($existingApp) {
+            return $this->redirectToRoute('admin_aplicaciones');
+        }
+
+        // Crear nueva aplicación
+        $aplicacion = new Aplicaciones();
+        $aplicacion->setNombre($data['nombre']);
+        $aplicacion->setApikey($this->generateToken());
+        $aplicacion->setActivo(true);
+
+        $this->entityManager->persist($aplicacion);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('admin_aplicaciones');
+    }
+
+    #[Route('/aplicaciones/delete/{id}', name: 'admin_aplicacion_delete', methods: ['POST'])]
+    public function deleteAplicacion(int $id, Request $request, AplicacionesRepository $appRepo): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // Validar CSRF token
+        if (!$this->isCsrfTokenValid('delete_aplicacion', $request->request->get('_token'))) {
+            return $this->redirectToRoute('admin_aplicaciones');
+        }
+
+        // Obtener la aplicación a eliminar
+        $aplicacion = $appRepo->find($id);
+        
+        if (!$aplicacion) {
+            return $this->redirectToRoute('admin_aplicaciones');
+        }
+
+        // Eliminar la aplicación
+        $this->entityManager->remove($aplicacion);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('admin_aplicaciones');
     }
 }
