@@ -26,6 +26,12 @@ class ApiController extends AbstractController
         return bin2hex(random_bytes(16));
     }
 
+    #[Route('/', name: 'app_api', methods: ['GET'])]
+    public function apiIndex(): JsonResponse
+    {
+        return new JsonResponse(['message' => 'API root', 'info' => 'Available API endpoints under /api/*']);
+    }
+
     // ==================== AUTENTICACIÓN ====================
 
     #[Route('/register', name: 'api_register', methods: ['POST'])]
